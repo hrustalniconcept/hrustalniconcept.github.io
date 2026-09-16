@@ -166,11 +166,11 @@ def service_page(s):
   <div class="meta"><span class="lbl">Услуга {n:02d} / {len(ORDER):02d}</span><span class="lbl">{esc(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>
   <h1 class="h1">{s.get("h1", esc(s["title"]))}</h1>
   <p class="lead">{t(s.get("result_line") or s["promise"])}</p>
-  <div class="facts rv">
+  <div class="facts">
     <div><b>{esc(s["price"]["display"])}</b><span class="cap">{esc(s["duration"])}</span></div>
     <div><b>{esc(s.get("fact2", {}).get("b", s["duration"]))}</b><span class="cap">{t(s.get("fact2", {}).get("cap", s["price"]["note"]))}</span></div>
   </div>
-  <div class="actions rv"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a>{report_link}</div>
+  <div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a>{report_link}</div>
   {photo}
 </section>'''
 
