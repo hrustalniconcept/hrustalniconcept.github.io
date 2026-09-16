@@ -1,0 +1,37 @@
+{
+  "_comment": "Настройки сайта. Правятся без правки кода. После правки: python3 tools/build.py",
+  "site": {
+    "name": "Концепт-бюро «Хрустальный»",
+    "url": "https://hrustalniconcept.github.io",
+    "home": "https://hrustalni.com",
+    "portfolio": "/portfolio/",
+    "lang": "ru"
+  },
+  "contacts": {
+    "manager": { "name": "Анна", "role": "работа с проектами", "telegram": "https://t.me/annaHrustalni" },
+    "channel": "https://t.me/HrustalniDevelopment",
+    "email": "[[ЗАПОЛНИТЬ: почта бюро для заявок]]"
+  },
+  "bitrix": {
+    "_comment": "Входящий вебхук Битрикс24 с правами только на CRM (crm.lead.add). Пока пусто, форма работает в тестовом режиме и пишет заявку в консоль браузера.",
+    "webhook": "",
+    "source_id": "WEB",
+    "assigned_by_id": ""
+  },
+  "metrika": {
+    "_comment": "Номер счётчика Яндекс.Метрики. Пока пусто, счётчик не подключается, цели не отправляются.",
+    "counter": ""
+  },
+  "report_example": {
+    "_comment": "Обезличенный пример отчёта, PDF на 4-6 страниц. Пока файла нет, кнопка ведёт на форму с пометкой «прислать пример».",
+    "url": ""
+  },
+  "policy_url": "",
+  "facts": {
+    "years": "17 лет в загородном девелопменте",
+    "settlements": "10 посёлков",
+    "residents": "более 7 000 жителей",
+    "referrals": "половина продаж приходит по рекомендации",
+    "geography": "Иркутск, Челябинск, Братск, Подмосковье"
+  }
+}
