@@ -299,3 +299,10 @@ html.js .rv.in{opacity:1;transform:none}
 .pcard{display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line);padding-top:20px;color:var(--ink)}
 .pcard p{color:var(--ink72);flex:1}
 .pcard:hover .arrow{border-color:currentColor}
+.ladder li.sidehead span{padding-top:28px;font:500 11px/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase}
+.ladder li.side .n{font-size:20px}
+.ladder li.side .t{font-size:clamp(20px,2vw,28px)}
+.price .row .full{grid-column:1/-1}
+.price .row .full .list{display:grid}
+@media(min-width:900px){.price .row.two-col{grid-template-columns:1fr 1fr}.price .row .full .list{grid-template-columns:1fr 1fr;column-gap:var(--gap)}.price .row .full .list li:nth-child(2){border-top:1px solid var(--wline)}}
+.price .row .list li{grid-template-columns:20px 1fr}
