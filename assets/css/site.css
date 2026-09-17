@@ -43,7 +43,7 @@ button{font:inherit;color:inherit}
 .stone{background:var(--stone)}
 .grid{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gap);row-gap:32px}
 .c4{grid-column:span 12}.c5{grid-column:span 12}.c6{grid-column:span 12}.c7{grid-column:span 12}.c8{grid-column:span 12}.c12{grid-column:span 12}
-@media(min-width:900px){.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.off1{grid-column-start:2}.off2{grid-column-start:3}.off7{grid-column-start:8}.off6{grid-column-start:7}.c4r{grid-column:9/span 4}.c5r{grid-column:8/span 5}.c6r{grid-column:7/span 6}}
+@media(min-width:900px){.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.off1{grid-column-start:2}.off2{grid-column-start:3}.off7{grid-column-start:8}.off6{grid-column-start:7}.c4r{grid-column:9/span 4}.c5r{grid-column:8/span 5}.c6r{grid-column:7/span 6}.c7r{grid-column:6/span 7}}
 .head{display:grid;gap:18px;margin-bottom:clamp(36px,5vh,64px)}
 @media(min-width:900px){.head{grid-template-columns:1fr minmax(260px,32%);align-items:end;gap:48px}.head .txt{margin-bottom:.5em}}
 

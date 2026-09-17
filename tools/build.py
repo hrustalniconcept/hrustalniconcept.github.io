@@ -130,13 +130,10 @@ def doors_block():
                   f'<span class="meta cap">{esc(x["meta"])}</span><span class="arrow">{esc(x["label"])} <i>→</i></span></a>')
     return f'<section class="sec wrap" id="s-chego-nachat"><div class="doors">{cards}</div><p class="txt side rv">{h["doors_side"]}</p></section>'
 
-def contrast_block():
-    _ctx['block'] = 'Контраст'
-    c = data['hub_page']['contrast']
-    def col(side):
-        return f'<div class="rv"><div class="word">{esc(side["t"])}</div><ul class="list">' + ''.join(f'<li><i>·</i><p>{esc(x)}</p></li>' for x in side['items']) + '</ul></div>'
-    return (f'<section class="sec stone wrap" id="kartinki"><div class="head"><h2 class="h2 rv">{c["title"]}</h2></div>'
-            f'<div class="two">{col(c["left"])}{col(c["right"])}</div><p class="txt rv" style="margin-top:32px;max-width:60ch">{esc(c["note"])}</p></section>')
+def scope_block():
+    _ctx['block'] = 'Границы работы'
+    c = data['hub_page']['scope']
+    return f'<section class="sec stone wrap" id="granicy"><div class="grid"><div class="c4 rv"><span class="lbl">{esc(c["lbl"])}</span></div><div class="c7 c7r rv"><p class="txt" style="max-width:60ch;font-size:clamp(17px,1.4vw,22px);line-height:1.45;color:var(--ink)">{esc(c["text"])}</p></div></div></section>'
 
 def diag_block(page_slug):
     """Диагност: четыре вопроса, карточка с рекомендацией, форма с ответами."""
@@ -297,7 +294,7 @@ def hub_page():
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
             f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}<div class="meta"><span class="lbl">Услуги</span><span class="lbl">Три вопроса, с которыми приходят</span></div>'
             f'<h1 class="h1">С чего <em>начать</em></h1><p class="lead">{esc(h["lead"])}</p></section>'
-            f'{doors_block()}{contrast_block()}{cases_block(ids=["townhouses-150", "kazan-484"])}{diag_block("hub")}</main>{footer()}</body></html>')
+            f'{doors_block()}{scope_block()}{cases_block(ids=["townhouses-150", "kazan-484"])}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
 # ---------- главная ----------
@@ -317,7 +314,7 @@ def home_page():
             f'<h1 class="h1">{h["hero"]["title"]}</h1><p class="lead">{esc(h["hero"]["lead"])}</p>'
             f'<div class="actions"><a class="btn" href="#s-chego-nachat" data-goal="cta_click">С чего начать <i>↓</i></a><a class="arrow" href="{cfg["site"]["portfolio"]}">Портфолио <i>→</i></a></div>'
             f'{hero_photo("home_aero", "Аэросъёмка Хрустального парка: построенные очереди, свободная земля и вода", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}</section>'
-            f'<section class="sec wrap" id="fakty" style="padding-bottom:0">{facts_strip()}</section>{doors_block()}{contrast_block()}'
+            f'<section class="sec wrap" id="fakty" style="padding-bottom:0">{facts_strip()}</section>{doors_block()}{scope_block()}'
             f'<section class="sec wrap" id="portfolio"><div class="head"><h2 class="h2 rv">{h["home_portfolio"]["title"]}</h2><p class="txt rv">{esc(h["home_portfolio"]["lead"])}</p></div><div class="pgrid">{pcards}</div></section>'
             f'{diag_block("home")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/home_aero_og.jpg', ld) + body
