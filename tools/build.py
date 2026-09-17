@@ -301,6 +301,26 @@ def cases_block(ids=None, title='Кейсы <em>клиентов</em>'):
                   f'<span class="arrow">Как это было <i>→</i></span></a>')
     return f'<section class="sec wrap" id="keisy"><div class="head"><h2 class="h2 rv">{title}</h2><p class="txt rv">Два случая из работы бюро. Клиентские проекты не называем, собственные называем прямо.</p></div><div class="cgrid">{cards}</div></section>'
 
+def portfolio_block(per_cat=2):
+    """Плитки портфолио: кадры из реестра портфолио (portfolio/projects.json, симлинк на соседний репозиторий)."""
+    _ctx['block'] = 'Портфолио'
+    h = data['hub_page']['home_portfolio']
+    reg_path = os.path.join(ROOT, 'portfolio', 'projects.json')
+    tiles = ''
+    if os.path.exists(reg_path):
+        reg = json.load(open(reg_path))
+        proot = cfg['site']['portfolio']
+        order = ['built', 'settlements', 'houses']
+        for c in sorted(reg['categories'], key=lambda c: order.index(c['id']) if c['id'] in order else 9):
+            for pr in [x for x in reg['projects'] if x['category'] == c['id']][:per_cat]:
+                cv = proot + pr['cover']
+                tiles += (f'<a class="tile rv" href="{proot}{pr["slug"]}/"><span class="ph"><img src="{cv}_s.webp" srcset="{cv}_s.webp 800w, {cv}_m.webp 1400w" sizes="(max-width:900px) 100vw, 33vw" alt="{esc(pr["title"])}" loading="lazy" decoding="async"></span>'
+                          f'<span class="lbl">{esc(c["short"])}{(" · " + esc(pr["year"])) if pr.get("year") else ""}</span><span class="t">{esc(pr["title"])}</span><span class="cap">{esc(pr["meta"])}</span></a>')
+    else:
+        TODOS.append((_ctx['page'], 'Портфолио', 'Реестр портфолио не найден при сборке: положить симлинк portfolio → соседний репозиторий'))
+    return (f'<section class="sec wrap" id="portfolio"><div class="head"><h2 class="h2 rv">{h["title"]}</h2><p class="txt rv">{esc(h["lead"])}</p></div>'
+            f'<div class="tiles">{tiles}</div><p class="rv" style="margin-top:32px"><a class="arrow" href="{cfg["site"]["portfolio"]}">Всё портфолио <i>→</i></a></p></section>')
+
 def hero_photo(src, alt, caption):
     base = f'/assets/img/uslugi/{src}'
     return f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{base}_s.webp 800w, {base}_m.webp 1400w, {base}.webp 2400w" sizes="100vw" width="2400" height="1409" alt="{esc(alt)}" fetchpriority="high" decoding="async"><figcaption class="cap">{esc(caption)}</figcaption></figure>'
@@ -317,7 +337,7 @@ def hub_page():
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
             f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}<div class="meta"><span class="lbl">Услуги</span><span class="lbl">Четыре работы и два отдельных входа</span></div>'
             f'<h1 class="h1">С чего <em>начать</em></h1><p class="lead">{esc(h["lead"])}</p></section>'
-            f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div><p class="txt side rv" style="margin-top:28px;max-width:70ch">{h["doors_side"]}</p></section>{scope_block()}{cases_block(ids=["townhouses-150", "kazan-484"])}{diag_block("hub")}</main>{footer()}</body></html>')
+            f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div><p class="txt side rv" style="margin-top:28px;max-width:70ch">{h["doors_side"]}</p></section>{scope_block()}{portfolio_block()}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
 # ---------- главная ----------
@@ -328,17 +348,13 @@ def home_page():
     desc = 'Концепции коттеджных посёлков и загородных проектов: сценарии для участка, продуктовая концепция, аудит проекта. Семнадцать лет строим и продаём посёлки, чужие проекты считаем так же, как свои.'
     ld = {"@context": "https://schema.org", "@type": "ProfessionalService", "name": cfg['site']['name'], "url": url, "sameAs": [cfg['site']['home'], cfg['contacts']['channel']], "description": desc, "areaServed": "RU",
           "founder": {"@type": "Person", "name": "Кристина Яковенко", "jobTitle": "сооснователь и директор по развитию"}}
-    ports = [("Реализованные проекты", "Хрустальный, Хрустальный парк, Aura, Резиденция XV, Villet, Vila, EcoVille, Европейский", cfg['site']['portfolio'] + '#built'),
-             ("Концепции посёлков", "Посёлок у озера, Лесная резиденция, Посёлок в сосновом лесу, Посёлок на склоне", cfg['site']['portfolio'] + '#settlements'),
-             ("Индивидуальные дома", "Дом в сосновом бору, Резиденция XV", cfg['site']['portfolio'] + '#houses')]
-    pcards = ''.join(f'<a class="pcard rv" href="{hh}" data-cat="{hh.split("#")[-1]}"><span class="ph"></span><span class="lbl">{esc(a)}</span><p>{esc(b)}</p><span class="arrow">Смотреть <i>→</i></span></a>' for a, b, hh in ports)
     body = (f'<body data-page="/" data-service="home">{nav()}<main><section class="hero wrap">'
             f'<div class="meta"><span class="lbl">Концепт-бюро «Хрустальный»</span><span class="lbl">Загородный девелопмент</span><span class="lbl">Иркутск · Челябинск · Братск · Подмосковье</span></div>'
             f'<h1 class="h1">{h["hero"]["title"]}</h1><p class="lead">{esc(h["hero"]["lead"])}</p>'
             f'<div class="actions"><a class="btn" href="#s-chego-nachat" data-goal="cta_click">С чего начать <i>↓</i></a><a class="arrow" href="{cfg["site"]["portfolio"]}">Портфолио <i>→</i></a></div>'
             f'{hero_photo("home_aero", "Аэросъёмка Хрустального парка: построенные очереди, свободная земля и вода", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}</section>'
             f'<section class="sec wrap" id="fakty" style="padding-bottom:0">{facts_strip()}</section>{doors_block()}{scope_block()}'
-            f'<section class="sec wrap" id="portfolio"><div class="head"><h2 class="h2 rv">{h["home_portfolio"]["title"]}</h2><p class="txt rv">{esc(h["home_portfolio"]["lead"])}</p></div><div class="pgrid">{pcards}</div></section>'
+            f'{portfolio_block()}'
             f'{diag_block("home")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/home_aero_og.jpg', ld) + body
 
