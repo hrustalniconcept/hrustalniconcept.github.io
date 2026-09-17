@@ -212,7 +212,7 @@ def service_page(s):
     _ctx['block'] = 'Результат'
     rl = ''.join(f'<li><b>{i+1:02d}</b><p>{t(x)}</p></li>' for i, x in enumerate(s['results']))
     res = f'''<section class="sec wrap" id="rezultat">
-  <div class="head"><h2 class="h2 rv">Какие решения <em>вы примете</em></h2><p class="txt rv">Не список работ. Решения, которые вы сможете принять, и деньги, которые не потеряете.</p></div>
+  <div class="head"><h2 class="h2 rv">Какие решения <em>вы примете</em></h2><p class="txt rv">Что вы сможете решить по итогам.</p></div>
   <ol class="res n{len(s["results"])}">{rl}</ol>
 </section>'''
 
@@ -224,7 +224,7 @@ def service_page(s):
     else:
         stages_html = f'<p class="txt">{t("[[ЗАПОЛНИТЬ: этапы работы по услуге «" + s["title"] + "» с неделями и выходом каждого этапа]]")}</p>'
     how = f'''<section class="sec stone wrap" id="kak">
-  <div class="head"><h2 class="h2 rv">Как устроена <em>работа</em></h2><p class="txt rv">У каждого этапа свой выход на бумаге. Защищаем его в разговоре, письмом не отправляем.</p></div>
+  <div class="head"><h2 class="h2 rv">Как устроена <em>работа</em></h2><p class="txt rv">Этапы, сроки и что получаете после каждого.</p></div>
   {stages_html}
 </section>'''
 
@@ -265,7 +265,7 @@ def service_page(s):
     if not review_html:
         TODOS.append((_ctx['page'], 'Кейс, отзыв', f'Отзыв клиента по услуге «{s["title"]}»: имя, должность, проект, 2-4 предложения о том, какое решение помог принять результат. Пока блок отзыва не выводится'))
     case = f'''<section class="sec wrap" id="keis">
-  <div class="head"><h2 class="h2 rv">Как это было <em>у других</em></h2><p class="txt rv">Чужие проекты не называем, свои называем прямо. Цифры только те, что можно проверить.</p></div>
+  <div class="head"><h2 class="h2 rv">Как это было <em>у других</em></h2><p class="txt rv">Чужие проекты не называем, свои называем прямо.</p></div>
   {case_html}{review_html}
 </section>'''
 
@@ -274,7 +274,7 @@ def service_page(s):
     ni = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_included'])
     np_ = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_promised'])
     limits = f'''<section class="sec stone wrap" id="ne-vhodit">
-  <div class="head"><h2 class="h2 rv">Что не входит <em>и чего не обещаем</em></h2><p class="txt rv">Проговариваем на входе, иначе через месяц начнётся «мы думали, это тоже входит».</p></div>
+  <div class="head"><h2 class="h2 rv">Что не входит <em>и чего не обещаем</em></h2><p class="txt rv">Чтобы потом не было «мы думали, это тоже входит».</p></div>
   <div class="two">
     <div class="rv"><div class="word">Не входит</div><ul class="list x">{ni}</ul></div>
     <div class="rv"><div class="word">Не обещаем</div><ul class="list x">{np_}</ul></div>
@@ -285,7 +285,7 @@ def service_page(s):
     _ctx['block'] = 'Вопросы'
     fq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{esc(q["q"])}<i></i></summary><div class="a">{t(q["a"])}</div></details>' for i, q in enumerate(s['faq']))
     faq = f'''<section class="sec wrap" id="voprosy">
-  <div class="head"><h2 class="h2 rv">Вопросы, которые <em>задают</em></h2><p class="txt rv">Так их и задают на первом звонке. Отвечаем так же.</p></div>
+  <div class="head"><h2 class="h2 rv">Вопросы, которые <em>задают</em></h2><p class="txt rv">Вопросы с первых звонков.</p></div>
   <div class="faq rv">{fq}</div>
 </section>'''
 
@@ -319,13 +319,13 @@ def cases_block(ids=None, title='Как это было <em>у других</em>
       <h3 class="h3">{esc(c["title"])}</h3><p class="cap" style="margin:6px 0 14px">{esc(c["meta"])}</p>
       <dl><div><dt>Ситуация</dt><dd>{t(c["situation"])}</dd></div><div><dt>Что нашли</dt><dd>{t(c["found"])}</dd></div><div><dt>Что поменяли</dt><dd>{t(c["changed"])}</dd></div><div><dt>Что изменилось</dt><dd>{t(c["result"])}</dd></div></dl>
       <a class="arrow" href="/uslugi/{c["primary"][0]}/" style="margin-top:18px">{esc(BY[c["primary"][0]]["title"])} <i>→</i></a></article>'''
-    return f'''<section class="sec wrap" id="keisy"><div class="head"><h2 class="h2 rv">{title}</h2><p class="txt rv">Чужие проекты не называем, свои называем прямо. Цифры только те, что можно проверить.</p></div>
+    return f'''<section class="sec wrap" id="keisy"><div class="head"><h2 class="h2 rv">{title}</h2><p class="txt rv">Чужие проекты не называем, свои называем прямо.</p></div>
   <div class="cgrid">{cards}</div></section>'''
 
 def rules_block():
     hw = data['hub_page']['how_we_work']
     items = ''.join(f'<li><span class="num">0{i+1}</span><div><h3 class="h3">{esc(x["t"])}</h3><p class="txt" style="margin-top:10px">{esc(x["d"])}</p></div></li>' for i, x in enumerate(hw['items']))
-    return f'''<section class="sec dark wrap" id="kak-rabotaem"><div class="head"><h2 class="h2 rv">Пять правил, <em>по которым работаем</em></h2><p class="txt rv">Из рабочего стандарта бюро. Нарушим любое, и документ можно не читать, каким бы толстым он ни был.</p></div>
+    return f'''<section class="sec dark wrap" id="kak-rabotaem"><div class="head"><h2 class="h2 rv">Пять правил, <em>по которым работаем</em></h2><p class="txt rv">Из рабочего стандарта бюро.</p></div>
   <ol class="rules">{items}</ol></section>'''
 
 def stage_table():
@@ -358,7 +358,7 @@ def hub_page():
   <h1 class="h1">С чего <em>начать</em></h1>
   <p class="lead">{esc(hub["lead"])}</p>
   <div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">Прислать кадастровый номер <i>→</i></a><a class="arrow" href="#lestnica">Лестница услуг <i>↓</i></a></div>
-  {hero_photo("hub_aero", "Аэросъёмка Хрустального парка: кварталы посёлка среди леса на закате", "Хрустальный парк, Иркутск, 100 га. Реализуемый проект группы")}
+  {hero_photo("hub_aero", "Аэросъёмка Хрустального парка: кварталы посёлка среди леса на закате", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}
 </section>
 {stage_table()}
 <section class="sec wrap" id="lestnica"><div class="head"><h2 class="h2 rv">Лестница <em>услуг</em></h2><p class="txt rv">Четыре ступени, каждая засчитывается в следующую. Точную сумму любой из них называем после разговора, а не до него.</p></div><div class="rv">{ladder()}</div></section>
@@ -387,7 +387,7 @@ def home_page():
   <h1 class="h1">Что и как строить, чтобы <em>экономика сошлась</em></h1>
   <p class="lead">Есть земля и вопрос «что тут строить». Или посёлок, который продаётся хуже плана. Считаем, что и как строить, чтобы сошлась экономика. Мы сами девелоперы: 10 посёлков, в них живут больше 7 000 человек.</p>
   <div class="actions"><a class="btn" href="/uslugi/" data-goal="cta_click">Выбрать услугу по стадии <i>→</i></a><a class="arrow" href="#zayavka">Прислать кадастровый номер <i>↓</i></a></div>
-  {hero_photo("home_aero", "Аэросъёмка Хрустального парка: построенные очереди, свободная земля и вода", "Хрустальный парк, Иркутск. Реализуемый проект группы, 100 га")}
+  {hero_photo("home_aero", "Аэросъёмка Хрустального парка: построенные очереди, свободная земля и вода", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}
 </section>
 <section class="sec wrap" id="fakty">{facts_strip()}</section>
 {stage_table()}
