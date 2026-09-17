@@ -309,3 +309,7 @@ html.js .rv.in{opacity:1;transform:none}
 .frame.has{aspect-ratio:auto;padding:0;background:#fff;display:block}
 .frame.has img{position:static;width:100%;height:auto}
 .frame.has .cap{display:block;padding:12px 0 0;color:var(--w55)}
+.pcard .ph{display:grid;grid-template-columns:1fr 1fr;gap:6px;aspect-ratio:2/1;overflow:hidden;background:var(--stone)}
+.pcard .ph img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s cubic-bezier(.2,.6,.2,1)}
+.pcard:hover .ph img{transform:scale(1.05)}
+.pcard .ph:empty{display:none}

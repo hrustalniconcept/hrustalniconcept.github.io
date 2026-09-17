@@ -55,6 +55,24 @@
     addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
   }
 
+  /* ---- портфолио: меню и кадры на главной строятся из /portfolio/projects.json ---- */
+  var mp = document.getElementById('menu-portfolio');
+  var pRoot = mp ? mp.dataset.portfolio : '/portfolio/';
+  fetch(pRoot + 'projects.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (data) {
+    var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var byCat = function (id) { return data.projects.filter(function (p) { return p.category === id; }); };
+    if (mp) {
+      mp.querySelector('.pl').innerHTML = data.categories.map(function (c) {
+        var list = byCat(c.id); if (!list.length) return '';
+        return '<a href="' + pRoot + '#' + c.id + '">' + esc(c.title) + '<small>' + list.length + '</small></a>';
+      }).join('') + '<a class="all" href="' + pRoot + '">всё портфолио →</a>';
+    }
+    document.querySelectorAll('.pcard[data-cat]').forEach(function (card) {
+      var list = byCat(card.dataset.cat).slice(0, 2); if (!list.length) return;
+      card.querySelector('.ph').innerHTML = list.map(function (p) { return '<img src="' + pRoot + p.cover + '_s.webp" alt="" loading="lazy" decoding="async">'; }).join('');
+    });
+  }).catch(function () {});
+
   /* ---- появление при скролле ---- */
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px 40px 0px' });

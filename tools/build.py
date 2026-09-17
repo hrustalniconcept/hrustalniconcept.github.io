@@ -71,7 +71,8 @@ def nav(cur_slug=None):
   <div class="top"><a class="logo" href="/">{LOGO}Хрустальный</a><button class="close" type="button">закрыть <i></i></button></div>
   <div class="cols">
     <div><span class="lbl">Услуги для девелоперов и землевладельцев</span><div class="pl">{items}<a href="/uslugi/" style="font-size:clamp(20px,2vw,26px);color:var(--w70)">Как выбрать по стадии проекта →</a></div></div>
-    <div><span class="lbl">Бюро</span><div class="pl"><a href="{cfg["site"]["portfolio"]}">Портфолио<small>дома и посёлки</small></a><a href="{cfg["site"]["home"]}">hrustalni.com<small>основной сайт</small></a><a href="{cfg["contacts"]["channel"]}" rel="noopener">Telegram-канал</a></div></div>
+    <div id="menu-portfolio" data-portfolio="{cfg["site"]["portfolio"]}"><span class="lbl">Портфолио</span><div class="pl"><a href="{cfg["site"]["portfolio"]}#built">Реализованные проекты</a><a href="{cfg["site"]["portfolio"]}#settlements">Коттеджные посёлки</a><a href="{cfg["site"]["portfolio"]}#houses">Индивидуальные дома</a><a class="all" href="{cfg["site"]["portfolio"]}">всё портфолио →</a></div></div>
+    <div><span class="lbl">Бюро</span><div class="pl"><a href="/">Главная</a><a href="{cfg["site"]["home"]}">hrustalni.com<small>основной сайт</small></a><a href="{cfg["contacts"]["channel"]}" rel="noopener">Telegram-канал</a></div></div>
   </div>
   <div class="bottom"><a href="#zayavka">Заявка</a><a href="{tg}" rel="noopener">Анна, работа с проектами → Telegram</a><a href="{cfg["site"]["home"]}">hrustalni.com</a></div>
 </div>'''
@@ -380,7 +381,7 @@ def home_page():
     ports = [("Реализованные проекты", "8 посёлков и кварталов: Хрустальный, Хрустальный парк, Aura, Резиденция XV, Villet, Vila, EcoVille, Европейский", cfg['site']['portfolio'] + '#built'),
              ("Концепции посёлков", "Посёлок у озера, Лесная резиденция, Посёлок в сосновом лесу, Посёлок на склоне", cfg['site']['portfolio'] + '#settlements'),
              ("Индивидуальные дома", "Дом в сосновом бору, Резиденция XV", cfg['site']['portfolio'] + '#houses')]
-    pcards = ''.join(f'<a class="pcard rv" href="{h}"><span class="lbl">{esc(a)}</span><p>{esc(b)}</p><span class="arrow">Смотреть <i>→</i></span></a>' for a, b, h in ports)
+    pcards = ''.join(f'<a class="pcard rv" href="{h}" data-cat="{h.split("#")[-1]}"><span class="ph"></span><span class="lbl">{esc(a)}</span><p>{esc(b)}</p><span class="arrow">Смотреть <i>→</i></span></a>' for a, b, h in ports)
     body = f'''<body data-page="/" data-service="home">{nav()}<main>
 <section class="hero wrap">
   <div class="meta"><span class="lbl">Концепт-бюро «Хрустальный»</span><span class="lbl">Загородный девелопмент</span><span class="lbl">Иркутск · Челябинск · Братск · Подмосковье</span></div>
@@ -413,6 +414,9 @@ def main():
     if not only:
         write('uslugi/index.html', hub_page()); pages.append('/uslugi/')
         write('index.html', home_page())
+    reg = {"site": {"root": "/", "services": "/uslugi/", "portfolio": cfg['site']['portfolio'], "home": cfg['site']['home'], "request": "/uslugi/#zayavka", "telegram": cfg['contacts']['manager']['telegram']},
+           "services": [{"slug": sl, "title": BY[sl]['title'], "short": BY[sl].get('short', ''), "price": BY[sl]['price']['display'], "duration": plain(BY[sl]['duration']), "url": f"/uslugi/{sl}/", "side": sl in SIDE} for sl in ORDER + SIDE]}
+    write('services.json', json.dumps(reg, ensure_ascii=False, indent=1))
     today = datetime.date.today().isoformat()
     write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{SITE}{p}</loc><lastmod>{today}</lastmod></url>' for p in ['/'] + pages) + '</urlset>')
     write('robots.txt', f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n')
