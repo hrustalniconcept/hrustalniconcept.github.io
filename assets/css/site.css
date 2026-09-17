@@ -306,3 +306,6 @@ html.js .rv.in{opacity:1;transform:none}
 .price .row .full .list{display:grid}
 @media(min-width:900px){.price .row.two-col{grid-template-columns:1fr 1fr}.price .row .full .list{grid-template-columns:1fr 1fr;column-gap:var(--gap)}.price .row .full .list li:nth-child(2){border-top:1px solid var(--wline)}}
 .price .row .list li{grid-template-columns:20px 1fr}
+.frame.has{aspect-ratio:auto;padding:0;background:#fff;display:block}
+.frame.has img{position:static;width:100%;height:auto}
+.frame.has .cap{display:block;padding:12px 0 0;color:var(--w55)}

@@ -203,7 +203,7 @@ def service_page(s):
   <div class="grid">
     <div class="c7 rv"><span class="lbl">Что получаете на выходе</span><h2 class="h2" style="margin-top:14px">Что окажется <em>у вас в руках</em></h2><div class="rule"></div>
       <ol class="deliv" style="margin-top:28px">{dl}</ol></div>
-    <div class="c4 c4r rv" style="align-self:end"><div class="frame">{frame_img}<span class="cap">{"Разворот отчёта" if frame_img else ""}</span></div>
+    <div class="c4 c4r rv" style="align-self:end"><div class="frame{' has' if frame_img else ''}">{frame_img}<span class="cap">{esc(s['artifact_image'].get('caption', '')) if frame_img else ''}</span></div>
       <p class="cap" style="margin-top:14px">{report_link}</p></div>
   </div>
 </section>'''
