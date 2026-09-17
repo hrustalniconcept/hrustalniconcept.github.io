@@ -73,6 +73,43 @@
     });
   }).catch(function () {});
 
+  /* ---- диагност: четыре вопроса → рекомендация → ответы в заявку ---- */
+  var diag = document.getElementById('diag');
+  if (diag && cfg.services) {
+    var res = document.getElementById('dres');
+    var lead = document.getElementById('leadForm');
+    var pick = function (name) { var el = diag.querySelector('input[name="dq_' + name + '"]:checked'); return el ? el.value : ''; };
+    var picks = function (name) { return [].map.call(diag.querySelectorAll('input[name="dq_' + name + '"]:checked'), function (e) { return e.value; }); };
+    var label = function (name, v) { var el = diag.querySelector('input[name="dq_' + name + '"][value="' + v + '"]'); return el ? el.nextElementSibling.textContent : v; };
+    var decide = function (stage, pain, houses) {
+      if (pain === 'bank') return 'finansovaya-model';
+      if (stage === 'land') return 'best-use';
+      if (stage === 'sales') return 'audit-proekta';
+      if (stage === 'concept') return pain === 'what' ? 'best-use' : (pain === 'econ' || pain === 'notsell') ? 'audit-proekta' : 'koncepciya';
+      if (stage === 'build') return pain === 'scale' ? 'koncepciya' : 'audit-proekta';
+      return pain === 'scale' ? 'koncepciya' : pain === 'what' ? 'best-use' : '';
+    };
+    var render = function () {
+      var stage = pick('stage'), pain = pick('pain'), houses = pick('houses');
+      var slug = decide(stage, pain, houses);
+      if (!slug || !stage || !pain) { res.hidden = true; return; }
+      var sv = cfg.services[slug]; if (!sv) return;
+      res.querySelector('.rt').textContent = diag.dataset.prefix + ' ' + sv.gen;
+      res.querySelector('.rs').textContent = sv.short + '. ' + sv.duration.charAt(0).toUpperCase() + sv.duration.slice(1) + ', ' + sv.price + '.';
+      res.querySelector('.rd').innerHTML = sv.deliverables.map(function (x) { return '<li><i>·</i><p>' + x + '</p></li>'; }).join('');
+      var note = res.querySelector('.rn'); var small = houses === '10' || houses === '0';
+      note.hidden = !(small && slug !== 'finansovaya-model'); if (!note.hidden) note.textContent = diag.dataset.note;
+      var link = res.querySelector('.rl'); link.href = sv.url; link.innerHTML = 'Подробнее: ' + sv.title + ' <i>→</i>';
+      res.hidden = false;
+      if (lead) {
+        lead.dataset.serviceTitle = sv.title;
+        lead.elements.diag.value = ['Стадия: ' + label('stage', stage), 'Мешает: ' + label('pain', pain), houses ? 'Домов в год: ' + label('houses', houses) : '', 'На руках: ' + (picks('docs').map(function (v) { return label('docs', v); }).join(', ') || 'не указано'), 'Рекомендация: ' + sv.title].filter(Boolean).join('\n');
+      }
+      goal('diag_result', { service: slug });
+    };
+    diag.addEventListener('change', render);
+  }
+
   /* ---- появление при скролле ---- */
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px 40px 0px' });
@@ -106,7 +143,8 @@
       if (field('company') && field('company').value) return; /* ловушка для ботов вместо капчи */
 
       var u = utm(), title = (form.dataset.serviceTitle || 'Заявка с сайта') + ': ' + name.value.trim();
-      var comments = ['Услуга: ' + (form.dataset.serviceTitle || ''), 'Объект / кадастровый номер: ' + (obj.value.trim() || 'не указан'),
+      var diagv = field('diag') ? field('diag').value : '';
+      var comments = ['Услуга: ' + (form.dataset.serviceTitle || ''), diagv ? 'Диагност:\n' + diagv : '', 'Объект / кадастровый номер: ' + (obj.value.trim() || 'не указан'),
         about && about.value.trim() ? 'О проекте: ' + about.value.trim() : '', 'Страница: ' + location.href,
         'Первый заход: ' + (store.get('hr_landing') || ''), 'Реферер: ' + (store.get('hr_referrer') || 'прямой'),
         'UTM: ' + (Object.keys(u).length ? JSON.stringify(u) : 'нет')].filter(Boolean).join('\n');
@@ -120,7 +158,7 @@
       btn.disabled = true; btn.querySelector('span').textContent = 'Отправляем';
       var done = function () { goal('form_' + service, { service: service }); form.innerHTML = form.dataset.success; form.classList.add('success'); form.setAttribute('aria-live', 'polite'); };
       var fail = function () { btn.disabled = false; btn.querySelector('span').textContent = form.dataset.cta; msg.style.display = 'block';
-        msg.textContent = 'Не отправилось. Напишите Анне в Telegram, ссылка ниже, или повторите через минуту.'; };
+        msg.textContent = 'Не отправилось. Напишите нам в Telegram, ссылка ниже, или повторите через минуту.'; };
 
       if (!hook) { console.info('[lead → Битрикс24, тестовый режим]', fields); setTimeout(done, 500); return; }
       fetch(hook + '/crm.lead.add.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: fields, params: { REGISTER_SONET_EVENT: 'Y' } }) })

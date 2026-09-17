@@ -56,7 +56,7 @@ def head(title, desc, canonical, og_image=None, ld=None, preload=None):
 {pre}
 <link rel="stylesheet" href="/assets/css/site.css">
 {('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>') if ld else ''}
-<script type="application/json" id="cfg">{json.dumps({"bitrix": {k: v for k, v in cfg["bitrix"].items() if not k.startswith("_")}, "metrika": {"counter": cfg["metrika"]["counter"]}}, ensure_ascii=False)}</script>
+<script type="application/json" id="cfg">{json.dumps({"bitrix": {k: v for k, v in cfg["bitrix"].items() if not k.startswith("_")}, "metrika": {"counter": cfg["metrika"]["counter"]}, "services": {sl: {"title": BY[sl]["title"], "gen": BY[sl].get("gen", BY[sl]["title"]), "short": BY[sl]["short"], "price": BY[sl]["price"]["display"], "duration": plain(BY[sl]["duration"]), "deliverables": [plain(x) for x in BY[sl]["deliverables"][:3]], "url": f"/uslugi/{sl}/"} for sl in ORDER + SIDE}}, ensure_ascii=False)}</script>
 </head>'''
 
 def nav(cur_slug=None):
@@ -89,53 +89,70 @@ def crumbs(items, dark=False):
     li = ''.join(f'<li><a href="{h}">{esc(n)}</a></li>' if h else f'<li aria-current="page">{esc(n)}</li>' for n, h in items)
     return f'<nav aria-label="Вы здесь"><ol class="crumbs">{li}</ol></nav>'
 
-def ladder(cur=None, dark=False):
-    """Лестница услуг с зачётами. Текущая подсвечена."""
-    rows = []
-    for i, slug in enumerate(ORDER):
-        s = BY[slug]; n = f'{i+1:02d}'
-        cls = ' '.join(filter(None, ['cur' if slug == cur else '', 'flag' if s.get('flagship') else '']))
-        title = s['title']
-        note = s['price'].get('note', '')
-        href = f'/uslugi/{slug}/'
-        inner = f'<span class="n">{n}</span><span class="t">{esc(title)}<small>{t(s["duration"])}</small></span><span class="d">{t(note)}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
-        rows.append(f'<li class="{cls}">' + (f'<a href="{href}">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
-        if slug == 'finansovaya-model':
-            rows.append('<li class="off"><span>↓ ' + t(data['ladder']['offset_rule'], 'Лестница услуг') + '</span></li>')
-    for slug in SIDE:
-        s = BY[slug]
-        inner = f'<span class="n">·</span><span class="t">{esc(s["title"])}<small>{esc(s["short"])}</small></span><span class="d">{t(s["duration"])}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
-        rows.append(f'<li class="side{" cur" if slug == cur else ""}">' + (f'<a href="/uslugi/{slug}/">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
-    if SIDE: rows.insert(len(rows) - len(SIDE), '<li class="off sidehead"><span>Отдельные входы. Продаются сами по себе, к лестнице не привязаны</span></li>')
-    entry = data['ladder'].get('entry')
-    first = (f'<li class="entry"><a href="#zayavka"><span class="n">00</span><span class="t">{esc(entry["title"])}<small>{esc(entry["text"])}</small></span><span class="d"></span><span class="p">{esc(entry["price"])}</span><span class="a">Начать <i>↓</i></span></a></li>' if entry else '')
-    return f'<ol class="ladder">{first}{"".join(rows)}</ol>'
-
-def form_block(s):
+def form_block(s, inner=False):
     """Блок «Первый шаг»: одна форма, поля по ТЗ, без капчи. Подтверждение говорит, что будет дальше."""
     tg = cfg['contacts']['manager']['telegram']
-    success = (f'<div class="success"><h2 class="h2">Заявка у Анны. <em>Ответ</em> в ближайший рабочий день</h2><div class="rule"></div>'
-               f'<p class="txt">Первый разговор занимает 30 минут: по кадастровому номеру и схеме участка скажем, что там можно, а что нельзя, и нужен ли вам этот этап вообще. Если удобнее сразу: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Анна в Telegram</a>.</p></div>')
+    success = (f'<div class="success"><h2 class="h2">Заявка получена. <em>Ответ</em> в ближайший рабочий день</h2><div class="rule"></div>'
+               f'<p class="txt">Первый разговор занимает 30 минут: по кадастровому номеру и схеме участка скажем, что там можно, а что нельзя, и нужен ли вам этот этап вообще. Если удобнее сразу: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>')
     policy = cfg.get('policy_url') or ''
     pol = f'<a href="{policy}">политикой обработки данных</a>' if policy else t('политикой обработки данных [[ЗАПОЛНИТЬ: ссылка на политику обработки персональных данных]]', 'Первый шаг, форма')
-    return f'''<section class="sec dark wrap" id="zayavka">
-  <div class="grid">
-    <div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2><div class="rule"></div>
-      <p class="txt">{t(s["first_step_text"], "Первый шаг")}</p>
-      <p class="txt" style="margin-top:18px">Пишет и звонит {esc(cfg["contacts"]["manager"]["name"])}, {esc(cfg["contacts"]["manager"]["role"])}. Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>
-    <div class="c6 c6r rv">
-      <form id="leadForm" class="form" novalidate data-service-title="{esc(s["title"])}" data-cta="{esc(s["cta"])}" data-success="{esc(success)}">
+    formhtml = f'''<form id="leadForm" class="form" novalidate data-service-title="{esc(s["title"])}" data-cta="{esc(s["cta"])}" data-success="{esc(success)}">
         <div class="f"><label for="f-name">Имя</label><input id="f-name" name="name" type="text" autocomplete="name" required placeholder="Как к вам обращаться"><span class="err">Напишите имя</span></div>
         <div class="f"><label for="f-contact">Телефон или Telegram</label><input id="f-contact" name="contact" type="text" inputmode="tel" autocomplete="tel" required placeholder="+7 ··· или @ник"><span class="err">Нужен телефон или ник в Telegram</span></div>
         <div class="f"><label for="f-object">Кадастровый номер или ссылка на проект</label><input id="f-object" name="object" type="text" placeholder="38:06:······:···· или ссылка"></div>
         <div class="f"><label for="f-about">Коротко о проекте, необязательно</label><textarea id="f-about" name="about" rows="2" placeholder="Площадь, стадия, что сейчас мешает"></textarea></div>
         <div class="f" style="position:absolute;left:-9999px" aria-hidden="true"><label for="f-company">Компания</label><input id="f-company" name="company" type="text" tabindex="-1" autocomplete="off"></div>
         <div class="foot"><button class="btn" type="submit"><span>{esc(s["cta"])}</span><i>→</i></button><p class="cap">Нажимая кнопку, вы соглашаетесь с {pol}. Без рассылок: один звонок или сообщение по делу.</p></div>
-        <p class="msg" role="alert"></p>
-      </form>
-    </div>
-  </div>
-</section>'''
+        <p class="msg" role="alert"></p><input type="hidden" name="diag" value="">
+      </form>'''
+    if inner: return '<span class="lbl" style="display:block;margin-bottom:22px">Заявка</span>' + formhtml
+    return (f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2><div class="rule"></div>'
+            f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>'
+            f'<div class="c6 c6r rv">{formhtml}</div></div></section>')
+
+def others(cur=None):
+    """«Другие услуги»: короткий список с ценами."""
+    rows = []
+    for slug in ORDER + SIDE:
+        if slug == cur: continue
+        s = BY[slug]
+        rows.append(f'<li><a href="/uslugi/{slug}/"><span class="t">{esc(s["title"])}<small>{esc(s["short"])}</small></span><span class="p">{esc(s["price"]["display"])}<small>{esc(plain(s["duration"]) or "срок по объёму")}</small></span><span class="a">Подробнее <i>→</i></span></a></li>')
+    return '<ul class="others">' + ''.join(rows) + '</ul>'
+
+def doors_block():
+    """Три двери: вопрос клиента его словами, ответ, срок и цена, ссылка на услугу."""
+    _ctx['block'] = 'Три двери'
+    h = data['hub_page']
+    cards = ''
+    for x in h['doors']:
+        cards += (f'<a class="door rv" href="/uslugi/{x["service"]}/"><span class="num">{x["n"]}</span>'
+                  f'<h3 class="h3">{esc(x["q"])}</h3><p class="txt">{esc(x["a"])}</p>'
+                  f'<span class="meta cap">{esc(x["meta"])}</span><span class="arrow">{esc(x["label"])} <i>→</i></span></a>')
+    return f'<section class="sec wrap" id="s-chego-nachat"><div class="doors">{cards}</div><p class="txt side rv">{h["doors_side"]}</p></section>'
+
+def contrast_block():
+    _ctx['block'] = 'Контраст'
+    c = data['hub_page']['contrast']
+    def col(side):
+        return f'<div class="rv"><div class="word">{esc(side["t"])}</div><ul class="list">' + ''.join(f'<li><i>·</i><p>{esc(x)}</p></li>' for x in side['items']) + '</ul></div>'
+    return (f'<section class="sec stone wrap" id="kartinki"><div class="head"><h2 class="h2 rv">{c["title"]}</h2></div>'
+            f'<div class="two">{col(c["left"])}{col(c["right"])}</div><p class="txt rv" style="margin-top:32px;max-width:60ch">{esc(c["note"])}</p></section>')
+
+def diag_block(page_slug):
+    """Диагност: четыре вопроса, карточка с рекомендацией, форма с ответами."""
+    _ctx['block'] = 'Диагност'
+    dg = data['hub_page']['diagnostic']
+    qs = ''
+    for q in dg['q']:
+        typ = 'checkbox' if q.get('multi') else 'radio'
+        opts = ''.join(f'<label class="opt"><input type="{typ}" name="dq_{q["id"]}" value="{v}"><span>{esc(l)}</span></label>' for v, l in q['opts'])
+        qs += f'<fieldset class="dq"><legend class="lbl">{esc(q["t"])}</legend><div class="opts">{opts}</div></fieldset>'
+    form = form_block({'slug': page_slug, 'title': 'Заявка после диагноста', 'hero_cta_h2': '', 'first_step_text': '', 'cta': 'Прислать информацию об участке'}, inner=True)
+    return (f'<section class="sec dark wrap" id="zayavka"><div class="grid">'
+            f'<div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2" style="margin-top:14px">{dg["title"]}</h2><div class="rule"></div><p class="txt">{esc(dg["lead"])}</p>'
+            f'<div class="diag" id="diag" data-prefix="{esc(dg["result_prefix"])}" data-note="{esc(dg["note_small"])}">{qs}</div>'
+            f'<div class="dres" id="dres" hidden><span class="lbl">Рекомендация</span><h3 class="h3 rt"></h3><p class="txt rs"></p><ul class="list rd"></ul><p class="cap rn" hidden></p><a class="arrow rl" href="#">Подробнее <i>→</i></a></div></div>'
+            f'<div class="c6 c6r rv">{form}</div></div></section>')
 
 # ---------- страница услуги ----------
 def service_page(s):
@@ -151,104 +168,66 @@ def service_page(s):
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Service", "name": s['title'], "description": seo_desc, "url": url, "serviceType": "Консалтинг в загородном девелопменте", "areaServed": "RU",
          "provider": {"@type": "Organization", "name": cfg['site']['name'], "url": cfg['site']['home']},
-         "offers": {"@type": "Offer", "price": s['price']['value'], "priceCurrency": "RUB", "description": s['price']['display'] + ', ' + s['duration']}},
+         "offers": {"@type": "Offer", "price": s['price']['value'], "priceCurrency": "RUB", "description": s['price']['display'] + ', ' + plain(s['duration'])}},
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": SITE + '/uslugi/'}, {"@type": "ListItem", "position": 3, "name": s['title'], "item": url}]},
         faq_ld]}
-
-    # тексты блоков по умолчанию, если в JSON их нет
     s.setdefault('hero_cta_h2', 'Расскажите <em>о проекте</em>')
-    s.setdefault('first_step_text', 'Ответим в ближайший рабочий день и скажем, с какой ступени имеет смысл начинать.')
+    s.setdefault('first_step_text', 'Ответим в ближайший рабочий день и скажем, с чего имеет смысл начинать.')
     report = cfg['report_example']['url']
     report_link = (f'<a class="arrow" href="{report}" data-goal="report_example" target="_blank" rel="noopener">Посмотреть пример отчёта <i>↗</i></a>' if report
-                   else f'<a class="arrow" href="#zayavka" data-goal="report_example">Прислать пример отчёта <i>↓</i></a>')
+                   else '<a class="arrow" href="#zayavka" data-goal="report_example">Прислать пример отчёта <i>↓</i></a>')
     if not report: TODOS.append((_ctx['page'], 'Обложка, кнопка «Посмотреть пример отчёта»', 'Обезличенный пример отчёта в PDF, 4-6 страниц. Пока файла нет, кнопка ведёт на форму'))
 
     # 1. обложка
     photo = (f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{srcset}" sizes="100vw" width="2400" height="1409" alt="{esc(img["alt"])}" fetchpriority="high" decoding="async">'
              f'<figcaption class="cap">{esc(img.get("caption", ""))}</figcaption></figure>' if has_img else '<div class="photo empty rv" role="img" aria-label="Место для фотографии"></div>')
-    if not has_img: TODOS.append((_ctx['page'], 'Обложка', f'Фотография на обложку услуги «{s["title"]}», собственная съёмка, привязанная к содержанию'))
+    if not has_img: TODOS.append((_ctx['page'], 'Обложка', f'Фотография на обложку услуги «{s["title"]}»'))
     _ctx['block'] = 'Обложка'
-    hero = f'''<section class="hero wrap">
-  {crumbs([("Главная", "/"), ("Услуги", "/uslugi/"), (s["title"], None)])}
-  <div class="meta"><span class="lbl">{f'Ступень {n:02d} / {len(ORDER):02d}' if n else 'Отдельный вход'}</span><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>
-  <h1 class="h1">{s.get("h1", esc(s["title"]))}</h1>
-  <p class="lead">{t(s.get("result_line") or s["promise"])}</p>
-  <div class="facts">
-    <div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>
-    <div><b>{esc(s.get("fact2", {}).get("b", s["duration"]))}</b><span class="cap">{t(s.get("fact2", {}).get("cap", s["price"]["note"]))}</span></div>
-  </div>
-  <div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a>{report_link}</div>
-  {photo}
-</section>'''
+    f2 = s.get('fact2', {})
+    hero = (f'<section class="hero wrap">{crumbs([("Главная", "/"), ("Услуги", "/uslugi/"), (s["title"], None)])}'
+            f'<div class="meta"><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>'
+            f'<h1 class="h1">{s.get("h1", esc(s["title"]))}</h1><p class="lead">{t(s.get("result_line") or s["promise"])}</p>'
+            f'<div class="facts"><div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>'
+            f'<div><b>{esc(f2.get("b", ""))}</b><span class="cap">{t(f2.get("cap", s["price"]["note"]))}</span></div></div>'
+            f'<div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a>{report_link}</div>{photo}</section>')
 
-    # 2. кому подходит / не подходит
+    # 2. кому подходит
     _ctx['block'] = 'Кому подходит'
     li = lambda items, mark: ''.join(f'<li><i>{mark}</i><p>{t(x)}</p></li>' for x in items)
-    who = f'''<section class="sec wrap" id="komu">
-  <div class="head"><h2 class="h2 rv">Кому подходит <em>и кому нет</em></h2><p class="txt rv">{t(s.get("who_intro", "Правая колонка важнее левой. Если ваш случай там, сэкономим друг другу неделю."))}</p></div>
-  <div class="two">
-    <div class="rv"><div class="word">Подходит</div><ul class="list">{li(s["for_whom"], "+")}</ul></div>
-    <div class="rv"><div class="word">Не подходит</div><ul class="list x">{li(s["not_for_whom"], "×")}</ul></div>
-  </div>
-</section>'''
+    who = (f'<section class="sec wrap" id="komu"><div class="head"><h2 class="h2 rv">Кому подходит <em>и кому нет</em></h2><p class="txt rv">{t(s.get("who_intro", ""))}</p></div>'
+           f'<div class="two"><div class="rv"><div class="word">Подходит</div><ul class="list">{li(s["for_whom"], "+")}</ul></div>'
+           f'<div class="rv"><div class="word">Не подходит</div><ul class="list x">{li(s["not_for_whom"], "×")}</ul></div></div></section>')
 
-    # 3. что получаете на выходе
+    # 3. что получаете: пять на виду
     _ctx['block'] = 'Что получаете на выходе'
-    dl = ''.join(f'<li><p>{t(x)}</p></li>' for x in s['deliverables'])
+    dl = s['deliverables']; vis, rest = dl[:5], dl[5:]
+    dl_html = '<ol class="deliv">' + ''.join(f'<li><p>{t(x)}</p></li>' for x in vis) + '</ol>'
+    if rest:
+        dl_html += f'<details class="moredl"><summary class="arrow">Ещё {len(rest)} <i>↓</i></summary><ol class="deliv" start="6">' + ''.join(f'<li><p>{t(x)}</p></li>' for x in rest) + '</ol></details>'
     frame_img = ''
     if s.get('artifact_image'):
         ai = s['artifact_image']; frame_img = f'<img src="/assets/img/uslugi/{ai["src"]}_m.webp" alt="{esc(ai["alt"])}" loading="lazy" decoding="async">'
     else:
         TODOS.append((_ctx['page'], 'Что получаете на выходе', 'Снимок разворота отчёта или экрана с документом для правой колонки. Пока контейнер пустой'))
-    out = f'''<section class="sec dark wrap" id="na-vyhode">
-  <div class="grid">
-    <div class="c7 rv"><span class="lbl">Что получаете на выходе</span><h2 class="h2" style="margin-top:14px">Что окажется <em>у вас в руках</em></h2><div class="rule"></div>
-      <ol class="deliv" style="margin-top:28px">{dl}</ol></div>
-    <div class="c4 c4r rv" style="align-self:end"><div class="frame{' has' if frame_img else ''}">{frame_img}<span class="cap">{esc(s['artifact_image'].get('caption', '')) if frame_img else ''}</span></div>
-      <p class="cap" style="margin-top:14px">{report_link}</p></div>
-  </div>
-</section>'''
+    fcap = esc(s['artifact_image'].get('caption', '')) if frame_img else ''
+    out = (f'<section class="sec dark wrap" id="na-vyhode"><div class="grid">'
+           f'<div class="c7 rv"><span class="lbl">Что получаете на выходе</span><h2 class="h2" style="margin-top:14px">Что окажется <em>у вас в руках</em></h2><div class="rule"></div><div style="margin-top:28px">{dl_html}</div></div>'
+           f'<div class="c4 c4r rv" style="align-self:end"><div class="frame{" has" if frame_img else ""}">{frame_img}<span class="cap">{fcap}</span></div><p class="cap" style="margin-top:14px">{report_link}</p></div></div></section>')
 
-    # 4. результат
-    _ctx['block'] = 'Результат'
-    rl = ''.join(f'<li><b>{i+1:02d}</b><p>{t(x)}</p></li>' for i, x in enumerate(s['results']))
-    res = f'''<section class="sec wrap" id="rezultat">
-  <div class="head"><h2 class="h2 rv">Какие решения <em>вы примете</em></h2><p class="txt rv">Что вы сможете решить по итогам.</p></div>
-  <ol class="res n{len(s["results"])}">{rl}</ol>
-</section>'''
-
-    # 5. как устроена работа
-    _ctx['block'] = 'Как устроена работа'
-    if s['stages']:
-        st = ''.join(f'<li class="rv"><span class="lbl">{esc(x["term"])}</span><h3 class="h3">{esc(x["name"])}</h3><p>{t(x["out"])}</p></li>' for x in s['stages'])
-        stages_html = f'<ol class="steps" style="--n:{len(s["stages"])}">{st}</ol>'
-    else:
-        stages_html = f'<p class="txt">{t("[[ЗАПОЛНИТЬ: этапы работы по услуге «" + s["title"] + "» с неделями и выходом каждого этапа]]")}</p>'
-    how = f'''<section class="sec stone wrap" id="kak">
-  <div class="head"><h2 class="h2 rv">Как устроена <em>работа</em></h2><p class="txt rv">Этапы, сроки и что получаете после каждого.</p></div>
-  {stages_html}
-</section>'''
-
-    # 6. стоимость
+    # 4. стоимость
     _ctx['block'] = 'Стоимость'
     moves = s['price'].get('what_moves_it')
-    moves_html = ('<ul class="list" style="margin-top:12px">' + ''.join(f'<li><i>·</i><p>{t(x)}</p></li>' for x in moves) + '</ul>') if moves else f'<p>{t(s["price"].get("fixed_note", "Цена не зависит от площади участка и региона. Работаем по документам и открытым данным по всей России."))}</p>'
+    moves_html = ('<ul class="list">' + ''.join(f'<li><i>·</i><p>{t(x)}</p></li>' for x in moves) + '</ul>') if moves else ''
     scale = f'<p class="txt" style="margin-top:18px">{t(s["price"]["scale_argument"])}</p>' if s['price'].get('scale_argument') else ''
-    nxt = BY['koncepciya']
-    price = f'''<section class="sec dark wrap price" id="stoimost">
-  <div class="grid">
-    <div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span><b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["duration"])}</span>{scale}</div>
-    <div class="c7 rv">
-      <div class="row"><div class="full"><span class="lbl">Что двигает цену</span>{moves_html}</div></div>
-      <div class="row two-col"><div><span class="lbl">Следующая ступень</span><p>{t(s["price"]["note"])}. <b>{esc(s.get("next_step", ("Следующая ступень: " + BY[ORDER[idx(s["slug"])]]["title"] + ", " + BY[ORDER[idx(s["slug"])]]["price"]["display"] + ".") if 0 < idx(s["slug"]) < len(ORDER) else ("Продаётся отдельно, к лестнице не привязана." if not idx(s["slug"]) else "Последняя ступень лестницы.")))}</b></p></div>
-        <div><span class="lbl">Оплата</span><p>{t(s["payment"])}</p></div></div>
-      <div class="row" style="border-bottom:1px solid var(--wline)"><div style="grid-column:1/-1"><p>{t(s.get('price_long', 'Точная сумма называется после разговора и разбора исходных, а не до него. Работа дробится на этапы с отдельным договором на каждый: это защищает от ситуации, когда обещали всё сразу, а у заказчика вылез пул нерешённых вопросов.'))}</p></div></div>
-      <div class="actions" style="margin-top:28px"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a></div>
-    </div>
-  </div>
-</section>'''
+    nxt = (f' Следующий шаг: {BY[ORDER[n]]["title"]}, {BY[ORDER[n]]["price"]["display"]}.' if 0 < n < len(ORDER) else '')
+    price = (f'<section class="sec stone wrap price" id="stoimost"><div class="grid">'
+             f'<div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span><b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["duration"])}</span>'
+             f'<p class="txt" style="margin-top:22px">{t(s["price"]["note"])}.{esc(nxt)}</p>{scale}'
+             f'<p class="txt" style="margin-top:14px"><span class="lbl" style="display:block;margin-bottom:6px">Оплата</span>{t(s["payment"])}</p></div>'
+             f'<div class="c6 c6r rv"><span class="lbl" style="display:block;margin-bottom:8px">Что двигает цену</span>{moves_html}<p class="txt" style="margin-top:22px">{t(s.get("price_long", ""))}</p>'
+             f'<div class="actions" style="margin-top:28px"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a></div></div></div></section>')
 
-    # 7. кейс и отзыв
+    # 5. кейс
     _ctx['block'] = 'Кейс'
     ref = s.get('case_ref', '')
     cs = [c for c in cases if c['id'] == ref] or ([] if is_todo(ref) else [c for c in cases if slug in c['services']])
@@ -256,87 +235,51 @@ def service_page(s):
         c = cs[0]
         if slug not in c.get('primary', c['services'][:1]): TODOS.append((_ctx['page'], 'Кейс', f'Кейс именно по услуге «{s["title"]}». Пока показан смежный кейс «{c["title"]}»'))
         row = lambda k, v: f'<div><dt>{k}</dt><dd>{t(v)}</dd></div>'
-        case_html = f'''<div class="case rv"><div class="fig"><b>{esc(c["figure"])}</b><p class="cap">{esc(c["figure_caption"])}</p><p class="cap" style="margin-top:18px">{esc(c["meta"])}</p></div>
-      <div><h3 class="h3" style="margin-bottom:18px">{esc(c["title"])}</h3><dl>{row("Ситуация", c["situation"])}{row("Что нашли", c["found"])}{row("Что поменяли", c["changed"])}{row("Что изменилось", c["result"])}</dl></div></div>'''
+        case_html = (f'<div class="case rv"><div class="fig"><b>{esc(c["figure"])}</b><p class="cap">{esc(c["figure_caption"])}</p><p class="cap" style="margin-top:18px">{esc(c["meta"])}</p></div>'
+                     f'<div><h3 class="h3" style="margin-bottom:18px">{esc(c["title"])}</h3><dl>{row("Ситуация", c["situation"])}{row("Что нашли", c["found"])}{row("Что поменяли", c["changed"])}{row("Что изменилось", c["result"])}</dl></div></div>')
     else:
-        ref = s.get('case_ref', '')
-        case_html = f'<p class="txt rv">{t(ref if is_todo(ref) else "[[ЗАПОЛНИТЬ: кейс по услуге «" + s["title"] + "» в формате Ситуация → Что нашли → Что поменяли → Что изменилось в цифрах]]")}</p>'
+        case_html = f'<p class="txt rv">{t(ref if is_todo(ref) else "[[ЗАПОЛНИТЬ: кейс по услуге «" + s["title"] + "»]]")}</p>'
     review = s.get('review')
     review_html = (f'<blockquote class="quote rv"><p>{esc(review["text"])}</p><footer class="cap">{esc(review["name"])}, {esc(review["role"])}, {esc(review["project"])}</footer></blockquote>' if review and not is_todo(review.get('text', '')) else '')
-    if not review_html:
-        TODOS.append((_ctx['page'], 'Кейс, отзыв', f'Отзыв клиента по услуге «{s["title"]}»: имя, должность, проект, 2-4 предложения о том, какое решение помог принять результат. Пока блок отзыва не выводится'))
-    case = f'''<section class="sec wrap" id="keis">
-  <div class="head"><h2 class="h2 rv">Как это было <em>у других</em></h2><p class="txt rv">Чужие проекты не называем, свои называем прямо.</p></div>
-  {case_html}{review_html}
-</section>'''
+    if not review_html: TODOS.append((_ctx['page'], 'Кейс, отзыв', f'Отзыв клиента по услуге «{s["title"]}»: имя, должность, проект, 2-4 предложения. Пока блок не выводится'))
+    case = f'<section class="sec wrap" id="keis"><div class="head"><h2 class="h2 rv">Кейс <em>по этой работе</em></h2><p class="txt rv">Клиентские проекты не называем, собственные называем прямо.</p></div>{case_html}{review_html}</section>'
 
-    # 8. что не входит и чего не обещаем
-    _ctx['block'] = 'Что не входит'
-    ni = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_included'])
-    np_ = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_promised'])
-    limits = f'''<section class="sec stone wrap" id="ne-vhodit">
-  <div class="head"><h2 class="h2 rv">Что не входит <em>и чего не обещаем</em></h2><p class="txt rv">Чтобы потом не было «мы думали, это тоже входит».</p></div>
-  <div class="two">
-    <div class="rv"><div class="word">Не входит</div><ul class="list x">{ni}</ul></div>
-    <div class="rv"><div class="word">Не обещаем</div><ul class="list x">{np_}</ul></div>
-  </div>
-</section>'''
+    # 6. подробнее о работе
+    _ctx['block'] = 'Подробнее о работе'
+    rl = ''.join(f'<li><b>{i+1:02d}</b><p>{t(x)}</p></li>' for i, x in enumerate(s['results']))
+    st = ''.join(f'<li><span class="lbl">{t(x["term"])}</span><h3 class="h3">{esc(x["name"])}</h3><p>{t(x["out"])}</p></li>' for x in s['stages'])
+    ni = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_included']); np_ = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_promised'])
+    fq = ''.join(f'<details><summary>{esc(q["q"])}<i></i></summary><div class="a">{t(q["a"])}</div></details>' for q in s['faq'])
+    more = (f'<section class="sec stone wrap" id="podrobnee"><div class="head"><h2 class="h2 rv">Подробнее <em>о работе</em></h2><p class="txt rv">Этапы, границы и вопросы с первых звонков. Для тех, кто принимает решение.</p></div>'
+            f'<details class="dsec rv"><summary><span class="word">Что сможете решить по итогам</span><i></i></summary><ol class="res n{len(s["results"])}">{rl}</ol></details>'
+            f'<details class="dsec rv"><summary><span class="word">Как устроена работа</span><i></i></summary><ol class="steps" style="--n:{len(s["stages"])}">{st}</ol></details>'
+            f'<details class="dsec rv"><summary><span class="word">Что не входит и чего не обещаем</span><i></i></summary><div class="two"><div><ul class="list x">{ni}</ul></div><div><ul class="list x">{np_}</ul></div></div></details>'
+            f'<details class="dsec rv" id="voprosy"><summary><span class="word">Вопросы</span><i></i></summary><div class="faq">{fq}</div></details></section>')
 
-    # 9. вопросы
-    _ctx['block'] = 'Вопросы'
-    fq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{esc(q["q"])}<i></i></summary><div class="a">{t(q["a"])}</div></details>' for i, q in enumerate(s['faq']))
-    faq = f'''<section class="sec wrap" id="voprosy">
-  <div class="head"><h2 class="h2 rv">Вопросы, которые <em>задают</em></h2><p class="txt rv">Вопросы с первых звонков.</p></div>
-  <div class="faq rv">{fq}</div>
-</section>'''
-
-    # 10. форма
+    # 7. форма и другие услуги
     _ctx['block'] = 'Первый шаг'
     form = form_block(s)
+    _ctx['block'] = 'Другие услуги'
+    oth = f'<section class="sec wrap" id="uslugi"><div class="head"><h2 class="h2 rv">{data["ladder"]["others_title"]}</h2><p class="txt rv">{t(data["ladder"]["others_lead"])}</p></div><div class="rv">{others(cur=slug)}</div></section>'
 
-    # 11. лестница
-    _ctx['block'] = 'Лестница услуг'
-    lad = f'''<section class="sec wrap" id="uslugi">
-  <div class="head"><h2 class="h2 rv">Лестница <em>услуг</em></h2><p class="txt rv">Четыре ступени, каждая засчитывается в следующую. Финансовая модель и сопровождение продаются отдельно. <a class="arrow" href="/uslugi/" style="font-size:16px;margin-top:10px">Как выбрать по стадии <i>→</i></a></p></div>
-  <div class="rv">{ladder(cur=slug)}</div>
-</section>'''
-
-    body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{hero}{who}{out}{res}{how}{price}{case}{limits}{faq}{form}{lad}</main>{footer()}</body></html>'
+    body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{hero}{who}{out}{price}{case}{more}{form}{oth}</main>{footer()}</body></html>'
     pre = {"src": f'{base}_m.webp', "srcset": srcset} if has_img else None
     return head(seo_title, seo_desc, url, og, ld, pre) + body
 
 # ---------- общие блоки хаба и главной ----------
-def facts_strip(dark=False):
-    f = cfg['facts']
-    items = [(f['years'].split(' ')[0] + ' лет', 'в загородном девелопменте'), ('10', 'посёлков построили и ведём'), ('7 000+', 'жителей живут в наших посёлках'), ('1/2', 'продаж приходит по рекомендации')]
+def facts_strip():
+    items = [('17 лет', 'в загородном девелопменте'), ('10', 'посёлков построили и ведём'), ('7 000+', 'жителей живут в наших посёлках'), ('1/2', 'продаж приходит по рекомендации')]
     return '<div class="facts4 rv">' + ''.join(f'<div><b>{esc(a)}</b><span class="cap">{esc(b)}</span></div>' for a, b in items) + '</div>'
 
-def cases_block(ids=None, title='Как это было <em>у других</em>'):
+def cases_block(ids=None, title='Кейсы <em>клиентов</em>'):
     _ctx['block'] = 'Кейсы'
     cs = [c for c in cases if not ids or c['id'] in ids]
     cards = ''
     for c in cs:
-        cards += f'''<article class="ccard rv"><div class="fig"><b>{esc(c["figure"])}</b><p class="cap">{esc(c["figure_caption"])}</p></div>
-      <h3 class="h3">{esc(c["title"])}</h3><p class="cap" style="margin:6px 0 14px">{esc(c["meta"])}</p>
-      <dl><div><dt>Ситуация</dt><dd>{t(c["situation"])}</dd></div><div><dt>Что нашли</dt><dd>{t(c["found"])}</dd></div><div><dt>Что поменяли</dt><dd>{t(c["changed"])}</dd></div><div><dt>Что изменилось</dt><dd>{t(c["result"])}</dd></div></dl>
-      <a class="arrow" href="/uslugi/{c["primary"][0]}/" style="margin-top:18px">{esc(BY[c["primary"][0]]["title"])} <i>→</i></a></article>'''
-    return f'''<section class="sec wrap" id="keisy"><div class="head"><h2 class="h2 rv">{title}</h2><p class="txt rv">Чужие проекты не называем, свои называем прямо.</p></div>
-  <div class="cgrid">{cards}</div></section>'''
-
-def rules_block():
-    hw = data['hub_page']['how_we_work']
-    items = ''.join(f'<li><span class="num">0{i+1}</span><div><h3 class="h3">{esc(x["t"])}</h3><p class="txt" style="margin-top:10px">{esc(x["d"])}</p></div></li>' for i, x in enumerate(hw['items']))
-    return f'''<section class="sec dark wrap" id="kak-rabotaem"><div class="head"><h2 class="h2 rv">Пять правил, <em>по которым работаем</em></h2><p class="txt rv">Из рабочего стандарта бюро.</p></div>
-  <ol class="rules">{items}</ol></section>'''
-
-def stage_table():
-    hub = data['hub_page']
-    rows = ''.join(f'<li class="rv"><span class="st">{esc(r["stage"])}</span><a class="arrow" href="/uslugi/{r["service"]}/">{esc(BY[r["service"]]["title"])}{(" <small>" + esc(r["note"]) + "</small>") if r.get("note") else ""} <i>→</i></a></li>' for r in hub['stage_map'])
-    return f'''<section class="sec stone wrap" id="stadiya"><div class="head"><h2 class="h2 rv">Стадия проекта <em>и ступень</em></h2><p class="txt rv">Стадия решает больше, чем роль. Из 96 анкет: у 23 проект уже в стройке, у 21 есть участок без решения, у 11 на столе новая площадка.</p></div>
-  <ul class="stages">{rows}</ul></section>'''
-
-def generic_form(slug, title, h2, text, cta):
-    return form_block({'slug': slug, 'title': title, 'hero_cta_h2': h2, 'first_step_text': text, 'cta': cta})
+        cards += (f'<a class="ccard rv" href="/uslugi/{c["primary"][0]}/#keis"><div class="fig"><b>{esc(c["figure"])}</b><p class="cap">{esc(c["figure_caption"])}</p></div>'
+                  f'<h3 class="h3">{esc(c["title"])}</h3><p class="txt">{esc(c.get("summary", plain(c["changed"])))}</p>'
+                  f'<span class="arrow">Как это было <i>→</i></span></a>')
+    return f'<section class="sec wrap" id="keisy"><div class="head"><h2 class="h2 rv">{title}</h2><p class="txt rv">Два случая из работы бюро. Клиентские проекты не называем, собственные называем прямо.</p></div><div class="cgrid">{cards}</div></section>'
 
 def hero_photo(src, alt, caption):
     base = f'/assets/img/uslugi/{src}'
@@ -345,59 +288,38 @@ def hero_photo(src, alt, caption):
 # ---------- хаб ----------
 def hub_page():
     _ctx['page'] = '/uslugi/'; _ctx['block'] = 'Хаб'
-    url = f'{SITE}/uslugi/'
-    hub = data['hub_page']
-    title = 'Услуги концепт-бюро «Хрустальный»: аудит проекта, финмодель, концепция посёлка'
-    desc = 'Четыре ступени по стадии проекта: аудит проекта за две недели, финансовая модель, продуктовая концепция посёлка, сопровождение реализации. Цены и сроки открыты. Первый разговор без оплаты.'
+    url = f'{SITE}/uslugi/'; h = data['hub_page']
+    title = 'Услуги концепт-бюро «Хрустальный»: сценарии для участка, концепция посёлка, аудит проекта'
+    desc = 'С чего начать загородный проект: сценарии для участка, продуктовая концепция посёлка, аудит проекта, упаковка. Цены и сроки открыты. Четыре вопроса, чтобы понять, что нужно именно вам.'
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": url}]},
         {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f'{SITE}/uslugi/{sl}/', "name": BY[sl]['title']} for i, sl in enumerate(ORDER + SIDE)]}]}
-    body = f'''<body data-page="/uslugi/" data-service="hub">{nav()}<main>
-<section class="hero wrap">
-  {crumbs([("Главная", "/"), ("Услуги", None)])}
-  <div class="meta"><span class="lbl">Услуги</span><span class="lbl">Аудит · best use · концепция · упаковка</span><span class="lbl">Первый разговор без оплаты</span></div>
-  <h1 class="h1">С чего <em>начать</em></h1>
-  <p class="lead">{esc(hub["lead"])}</p>
-  <div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">Прислать кадастровый номер <i>→</i></a><a class="arrow" href="#lestnica">Лестница услуг <i>↓</i></a></div>
-  {hero_photo("hub_aero", "Аэросъёмка Хрустального парка: кварталы посёлка среди леса на закате", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}
-</section>
-{stage_table()}
-<section class="sec wrap" id="lestnica"><div class="head"><h2 class="h2 rv">Лестница <em>услуг</em></h2><p class="txt rv">Четыре ступени, каждая засчитывается в следующую. Точную сумму любой из них называем после разговора, а не до него.</p></div><div class="rv">{ladder()}</div></section>
-{rules_block()}
-{cases_block()}
-{generic_form("hub", "Заявка с хаба услуг", "Пришлите <em>кадастровый номер</em> и схему участка", "За 30 минут разговора скажем, что там можно, а что нельзя, и с какой ступени имеет смысл начинать. Если проект уже в продаже, пришлите три числа помесячно за год: обращения, показы, брони.", "Прислать кадастровый номер")}
-</main>{footer()}</body></html>'''
+    body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
+            f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}<div class="meta"><span class="lbl">Услуги</span><span class="lbl">Три вопроса, с которыми приходят</span></div>'
+            f'<h1 class="h1">С чего <em>начать</em></h1><p class="lead">{esc(h["lead"])}</p></section>'
+            f'{doors_block()}{contrast_block()}{cases_block(ids=["townhouses-150", "kazan-484"])}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
 # ---------- главная ----------
 def home_page():
     _ctx['page'] = '/'; _ctx['block'] = 'Главная'
-    url = SITE + '/'
-    title = 'Концепт-бюро «Хрустальный»: концепции коттеджных посёлков и загородных проектов'
-    desc = 'Что и как строить на участке, чтобы экономика сошлась. Концепции посёлков и малоэтажных кварталов для девелоперов, землевладельцев и строительных компаний. 17 лет, 10 посёлков, 7 000 жителей.'
-    ld = {"@context": "https://schema.org", "@type": "ProfessionalService", "name": cfg['site']['name'], "url": url, "sameAs": [cfg['site']['home'], cfg['contacts']['channel']],
-          "description": desc, "areaServed": "RU", "knowsAbout": ["загородный девелопмент", "концепция коттеджного посёлка", "мастер-план", "финансовая модель девелоперского проекта"],
+    url = SITE + '/'; h = data['hub_page']
+    title = 'Концепт-бюро «Хрустальный»: что строить на земле и сколько это принесёт'
+    desc = 'Концепции коттеджных посёлков и загородных проектов: сценарии для участка, продуктовая концепция, аудит проекта. Семнадцать лет строим и продаём посёлки, чужие проекты считаем так же, как свои.'
+    ld = {"@context": "https://schema.org", "@type": "ProfessionalService", "name": cfg['site']['name'], "url": url, "sameAs": [cfg['site']['home'], cfg['contacts']['channel']], "description": desc, "areaServed": "RU",
           "founder": {"@type": "Person", "name": "Кристина Яковенко", "jobTitle": "сооснователь и директор по развитию"}}
-    ports = [("Реализованные проекты", "8 посёлков и кварталов: Хрустальный, Хрустальный парк, Aura, Резиденция XV, Villet, Vila, EcoVille, Европейский", cfg['site']['portfolio'] + '#built'),
+    ports = [("Реализованные проекты", "Хрустальный, Хрустальный парк, Aura, Резиденция XV, Villet, Vila, EcoVille, Европейский", cfg['site']['portfolio'] + '#built'),
              ("Концепции посёлков", "Посёлок у озера, Лесная резиденция, Посёлок в сосновом лесу, Посёлок на склоне", cfg['site']['portfolio'] + '#settlements'),
              ("Индивидуальные дома", "Дом в сосновом бору, Резиденция XV", cfg['site']['portfolio'] + '#houses')]
-    pcards = ''.join(f'<a class="pcard rv" href="{h}" data-cat="{h.split("#")[-1]}"><span class="ph"></span><span class="lbl">{esc(a)}</span><p>{esc(b)}</p><span class="arrow">Смотреть <i>→</i></span></a>' for a, b, h in ports)
-    body = f'''<body data-page="/" data-service="home">{nav()}<main>
-<section class="hero wrap">
-  <div class="meta"><span class="lbl">Концепт-бюро «Хрустальный»</span><span class="lbl">Загородный девелопмент</span><span class="lbl">Иркутск · Челябинск · Братск · Подмосковье</span></div>
-  <h1 class="h1">Что и как строить, чтобы <em>экономика сошлась</em></h1>
-  <p class="lead">Есть земля и вопрос «что тут строить». Или посёлок, который продаётся хуже плана. Считаем, что и как строить, чтобы сошлась экономика. Мы сами девелоперы: 10 посёлков, в них живут больше 7 000 человек.</p>
-  <div class="actions"><a class="btn" href="/uslugi/" data-goal="cta_click">Выбрать услугу по стадии <i>→</i></a><a class="arrow" href="#zayavka">Прислать кадастровый номер <i>↓</i></a></div>
-  {hero_photo("home_aero", "Аэросъёмка Хрустального парка: построенные очереди, свободная земля и вода", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}
-</section>
-<section class="sec wrap" id="fakty">{facts_strip()}</section>
-{stage_table()}
-<section class="sec wrap" id="lestnica"><div class="head"><h2 class="h2 rv">Лестница <em>услуг</em></h2><p class="txt rv">Четыре ступени, каждая засчитывается в следующую. Цены открыты, точную сумму называем после разговора. <a class="arrow" href="/uslugi/" style="font-size:16px;margin-top:10px">Как выбрать по стадии <i>→</i></a></p></div><div class="rv">{ladder()}</div></section>
-{rules_block()}
-{cases_block()}
-<section class="sec stone wrap" id="portfolio"><div class="head"><h2 class="h2 rv">Построено <em>и спроектировано</em></h2><p class="txt rv">Посёлки, которые построила группа, концепции, которые сделало бюро, и дома. Где визуализация, там так и подписано.</p></div><div class="pgrid">{pcards}</div></section>
-{generic_form("home", "Заявка с главной", "Пришлите <em>кадастровый номер</em> и схему участка", "За 30 минут разговора скажем, что там можно, а что нельзя, и с какой ступени имеет смысл начинать. Пишет и звонит Анна, работа с проектами.", "Прислать кадастровый номер")}
-</main>{footer()}</body></html>'''
+    pcards = ''.join(f'<a class="pcard rv" href="{hh}" data-cat="{hh.split("#")[-1]}"><span class="ph"></span><span class="lbl">{esc(a)}</span><p>{esc(b)}</p><span class="arrow">Смотреть <i>→</i></span></a>' for a, b, hh in ports)
+    body = (f'<body data-page="/" data-service="home">{nav()}<main><section class="hero wrap">'
+            f'<div class="meta"><span class="lbl">Концепт-бюро «Хрустальный»</span><span class="lbl">Загородный девелопмент</span><span class="lbl">Иркутск · Челябинск · Братск · Подмосковье</span></div>'
+            f'<h1 class="h1">{h["hero"]["title"]}</h1><p class="lead">{esc(h["hero"]["lead"])}</p>'
+            f'<div class="actions"><a class="btn" href="#s-chego-nachat" data-goal="cta_click">С чего начать <i>↓</i></a><a class="arrow" href="{cfg["site"]["portfolio"]}">Портфолио <i>→</i></a></div>'
+            f'{hero_photo("home_aero", "Аэросъёмка Хрустального парка: построенные очереди, свободная земля и вода", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}</section>'
+            f'<section class="sec wrap" id="fakty" style="padding-bottom:0">{facts_strip()}</section>{doors_block()}{contrast_block()}'
+            f'<section class="sec wrap" id="portfolio"><div class="head"><h2 class="h2 rv">{h["home_portfolio"]["title"]}</h2><p class="txt rv">{esc(h["home_portfolio"]["lead"])}</p></div><div class="pgrid">{pcards}</div></section>'
+            f'{diag_block("home")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/home_aero_og.jpg', ld) + body
 
 # ---------- сборка ----------
