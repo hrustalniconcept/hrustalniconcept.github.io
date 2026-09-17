@@ -8,6 +8,7 @@ C = lambda *p: os.path.join(ROOT, 'content', *p)
 cfg = json.load(open(C('config.json')))
 data = json.load(open(C('services.json')))
 cases = json.load(open(C('cases.json')))['cases']
+site = json.load(open(C('site.json')))
 SITE = cfg['site']['url'].rstrip('/')
 SERVICES = data['services']
 BY = {s['slug']: s for s in SERVICES}
@@ -64,7 +65,7 @@ def nav(cur_slug=None):
     items = ''.join(f'<a href="/uslugi/{s["slug"]}/"{" class=cur aria-current=page" if s["slug"] == cur_slug else ""}>{esc(s["title"])}<small>{esc(s["price"]["display"])}</small></a>' for s in SERVICES)
     return f'''<header class="nav" id="nav">
   <a class="logo" href="/">{LOGO}Хрустальный</a>
-  <nav class="links" aria-label="Разделы"><a href="/uslugi/">Услуги</a><a href="{cfg["site"]["portfolio"]}">Портфолио</a><a href="{cfg["site"]["home"]}">hrustalni.com</a></nav>
+  <nav class="links" aria-label="Разделы">{''.join(f'<a href="{x["url"]}"{" aria-current=page" if x["url"] == _ctx["page"] else ""}>{esc(x["title"])}</a>' for x in site["nav"])}</nav>
   <div class="right"><a class="tg" href="{tg}" rel="noopener">Написать в Telegram</a><a href="#zayavka">Заявка</a><button class="burger" type="button" aria-label="Меню"><i></i><i></i><i></i></button></div>
 </header>
 <div class="menu" role="dialog" aria-label="Меню сайта">
@@ -72,18 +73,19 @@ def nav(cur_slug=None):
   <div class="cols">
     <div><span class="lbl">Услуги для девелоперов и землевладельцев</span><div class="pl">{items}<a href="/uslugi/" style="font-size:clamp(20px,2vw,26px);color:var(--w70)">Как выбрать по стадии проекта →</a></div></div>
     <div id="menu-portfolio" data-portfolio="{cfg["site"]["portfolio"]}"><span class="lbl">Портфолио</span><div class="pl"><a href="{cfg["site"]["portfolio"]}#built">Реализованные проекты</a><a href="{cfg["site"]["portfolio"]}#settlements">Коттеджные посёлки</a><a href="{cfg["site"]["portfolio"]}#houses">Индивидуальные дома</a><a class="all" href="{cfg["site"]["portfolio"]}">всё портфолио →</a></div></div>
-    <div><span class="lbl">Бюро</span><div class="pl"><a href="/">Главная</a><a href="{cfg["site"]["home"]}">hrustalni.com<small>основной сайт</small></a><a href="{cfg["contacts"]["channel"]}" rel="noopener">Telegram-канал</a></div></div>
+    <div><span class="lbl">Бюро</span><div class="pl"><a href="/">Главная</a>{''.join(f'<a href="{x["url"]}">{esc(x["title"])}<small>{esc(x.get("small", ""))}</small></a>' for x in site["menu_bureau"])}<a href="{cfg["contacts"]["channel"]}" rel="noopener">Telegram-канал</a></div></div>
   </div>
-  <div class="bottom"><a href="#zayavka">Заявка</a><a href="{tg}" rel="noopener">Анна, работа с проектами → Telegram</a><a href="{cfg["site"]["home"]}">hrustalni.com</a></div>
+  <div class="bottom"><a href="#zayavka">Заявка</a><a href="{tg}" rel="noopener">Telegram</a><a href="tel:{site["contacts"]["phone_tel"]}">{esc(site["contacts"]["phone_display"])}</a><a href="/kontakty/">Контакты</a></div>
 </div>'''
 
 def footer():
-    return f'''<footer class="footer">
-  <a class="logo" href="/">{LOGO}Хрустальный</a>
-  <span class="cap">Концепт-бюро «Хрустальный» · {esc(cfg["facts"]["years"])} · {esc(cfg["facts"]["settlements"])} · {esc(cfg["facts"]["residents"])}</span>
-  <div class="fl"><a href="/uslugi/">Услуги</a><a href="{cfg["site"]["portfolio"]}">Портфолио</a><a href="{cfg["contacts"]["manager"]["telegram"]}" rel="noopener">Telegram</a><a href="{cfg["site"]["home"]}">hrustalni.com</a></div>
-</footer>
-<script src="/assets/js/site.js" defer></script>'''
+    c = site['contacts']
+    cols = (f'<div><span class="lbl">Бюро</span><a href="/o-byuro/">О бюро</a><a href="/portfolio/">Портфолио</a><a href="/uslugi/">Услуги</a><a href="/obuchenie/">Обучение</a><a href="/kontakty/">Контакты</a></div>'
+            f'<div><span class="lbl">Услуги</span>' + ''.join(f'<a href="/uslugi/{sl}/">{esc(BY[sl]["title"])}</a>' for sl in ORDER + SIDE) + '</div>'
+            f'<div><span class="lbl">Связь</span><a href="{c["telegram_manager"]}" rel="noopener">Telegram</a><a href="tel:{c["phone_tel"]}">{esc(c["phone_display"])}</a><a href="mailto:{c["email"]}">{esc(c["email"])}</a><a href="{c["telegram_channel"]}" rel="noopener">Telegram-канал</a></div>')
+    return (f'<footer class="footer"><div class="ftop"><a class="logo" href="/">{LOGO}Хрустальный</a><p class="cap">Концепт-бюро группы «Хрустальный». {esc(cfg["facts"]["years"])}, {esc(cfg["facts"]["settlements"])}, {esc(cfg["facts"]["residents"])}. Иркутск, работаем по всей России.</p></div>'
+            f'<div class="fcols">{cols}</div><div class="fbot"><span class="cap">{esc(c["legal"]["name"])} · ИНН {esc(c["legal"]["inn"])}</span><a class="cap" href="/politika/">Политика обработки данных</a><a class="cap" href="{cfg["site"]["home"]}">hrustalni.com</a></div></footer>'
+            f'<script src="/assets/js/site.js" defer></script>')
 
 def crumbs(items, dark=False):
     li = ''.join(f'<li><a href="{h}">{esc(n)}</a></li>' if h else f'<li aria-current="page">{esc(n)}</li>' for n, h in items)
@@ -95,7 +97,7 @@ def form_block(s, inner=False):
     success = (f'<div class="success"><h2 class="h2">Заявка получена. <em>Ответ</em> в ближайший рабочий день</h2><div class="rule"></div>'
                f'<p class="txt">Первый разговор занимает 30 минут: по кадастровому номеру и схеме участка скажем, что там можно, а что нельзя, и нужен ли вам этот этап вообще. Если удобнее сразу: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>')
     policy = cfg.get('policy_url') or ''
-    pol = f'<a href="{policy}">политикой обработки данных</a>' if policy else t('политикой обработки данных [[ЗАПОЛНИТЬ: ссылка на политику обработки персональных данных]]', 'Первый шаг, форма')
+    pol = f'<a href="{policy or "/politika/"}">политикой обработки данных</a>'
     formhtml = f'''<form id="leadForm" class="form" novalidate data-service-title="{esc(s["title"])}" data-cta="{esc(s["cta"])}" data-success="{esc(success)}">
         <div class="f"><label for="f-name">Имя</label><input id="f-name" name="name" type="text" autocomplete="name" required placeholder="Как к вам обращаться"><span class="err">Напишите имя</span></div>
         <div class="f"><label for="f-contact">Телефон или Telegram</label><input id="f-contact" name="contact" type="text" inputmode="tel" autocomplete="tel" required placeholder="+7 ··· или @ник"><span class="err">Нужен телефон или ник в Telegram</span></div>
@@ -321,6 +323,9 @@ def portfolio_block(per_cat=2):
     return (f'<section class="sec wrap" id="portfolio"><div class="head"><h2 class="h2 rv">{h["title"]}</h2><p class="txt rv">{esc(h["lead"])}</p></div>'
             f'<div class="tiles">{tiles}</div><p class="rv" style="margin-top:32px"><a class="arrow" href="{cfg["site"]["portfolio"]}">Всё портфолио <i>→</i></a></p></section>')
 
+def generic_form(slug, title, h2, text, cta):
+    return form_block({'slug': slug, 'title': title, 'hero_cta_h2': h2, 'first_step_text': text, 'cta': cta})
+
 def hero_photo(src, alt, caption):
     base = f'/assets/img/uslugi/{src}'
     return f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{base}_s.webp 800w, {base}_m.webp 1400w, {base}.webp 2400w" sizes="100vw" width="2400" height="1409" alt="{esc(alt)}" fetchpriority="high" decoding="async"><figcaption class="cap">{esc(caption)}</figcaption></figure>'
@@ -353,10 +358,118 @@ def home_page():
             f'<h1 class="h1">{h["hero"]["title"]}</h1><p class="lead">{esc(h["hero"]["lead"])}</p>'
             f'<div class="actions"><a class="btn" href="#s-chego-nachat" data-goal="cta_click">С чего начать <i>↓</i></a><a class="arrow" href="{cfg["site"]["portfolio"]}">Портфолио <i>→</i></a></div>'
             f'{hero_photo("home_aero", "Аэросъёмка Хрустального парка: построенные очереди, свободная земля и вода", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}</section>'
-            f'<section class="sec wrap" id="fakty" style="padding-bottom:0">{facts_strip()}</section>{doors_block()}{scope_block()}'
-            f'{portfolio_block()}'
+            f'<section class="sec wrap" id="fakty" style="padding-bottom:0">{facts_strip()}</section>{doors_block()}{scene_block()}{scope_block()}'
+            f'{portfolio_block()}{awards_line()}'
             f'{diag_block("home")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/home_aero_og.jpg', ld) + body
+
+# ---------- страницы бюро: о бюро, контакты, обучение, политика, 404 ----------
+def scene_block():
+    """Тёмная полноэкранная сцена на главной: фото с параллаксом, гигантское слово, три строки."""
+    _ctx['block'] = 'Сцена'
+    sc = site['home']['scene']; base = f'/assets/img/uslugi/{sc["photo"]}'
+    lines = ''.join(f'<li class="rv">{esc(x)}</li>' for x in sc['lines'])
+    return (f'<section class="scene" id="my-sami"><div class="ph" data-parallax><img src="{base}_m.webp" srcset="{base}_s.webp 800w, {base}_m.webp 1400w, {base}.webp 2400w" sizes="100vw" alt="{esc(sc["alt"])}" loading="lazy" decoding="async"></div>'
+            f'<div class="wrap in"><h2 class="giant rv">{esc(sc["word"])}</h2><ul class="lines">{lines}</ul><a class="arrow rv" href="{sc["link"]}">{esc(sc["cta"])} <i>→</i></a></div></section>')
+
+def awards_line():
+    items = ''.join(f'<span>{esc(x)}</span>' for x in site['home']['awards_line'])
+    return f'<section class="wrap awline rv"><span class="lbl">Награды посёлков группы</span><div class="items">{items}</div><a class="arrow" href="/o-byuro/#nagrady">Все награды <i>→</i></a></section>'
+
+def about_page():
+    _ctx['page'] = '/o-byuro/'; _ctx['block'] = 'О бюро'
+    a = site['about']; url = f'{SITE}/o-byuro/'
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "Organization", "@id": SITE + '/#org', "name": cfg['site']['name'], "url": SITE + '/', "logo": SITE + '/assets/img/favicon.svg', "foundingDate": "2009",
+         "address": {"@type": "PostalAddress", "addressLocality": "Иркутск", "addressCountry": "RU"}, "sameAs": [x['url'] for x in site['contacts']['social']],
+         "founder": [{"@type": "Person", "name": t_['name'], "jobTitle": plain(t_['role'])} for t_ in a['team']],
+         "award": [plain(x['t']) for x in a['awards']], "areaServed": "RU"},
+        {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "О бюро", "item": url}]}]}
+    story = ''.join(f'<div class="rv"><span class="num">0{i+1}</span><h3 class="h3" style="margin:12px 0 10px">{esc(x["t"])}</h3><p class="txt">{t(x["d"])}</p></div>' for i, x in enumerate(a['story']))
+    team = ''
+    for m in a['team']:
+        ph = (f'<span class="ph"><img src="/assets/img/uslugi/{m["photo"]}_m.webp" alt="{esc(m["alt"])}" loading="lazy" decoding="async"></span>' if m.get('photo') else '<span class="ph empty"></span>')
+        if not m.get('photo'): TODOS.append((_ctx['page'], 'Команда', f'Портрет: {m["name"]}'))
+        team += f'<div class="member rv">{ph}<h3 class="h3">{esc(m["name"])}</h3><p class="cap">{t(m["role"])}</p><p class="txt" style="margin-top:12px">{t(m["text"])}</p></div>'
+    fp = a['founders_photo']; fbase = f'/assets/img/uslugi/{fp["src"]}'
+    rules = ''.join(f'<li><span class="num">0{i+1}</span><div><h3 class="h3">{esc(x["t"])}</h3><p class="txt" style="margin-top:10px">{esc(x["d"])}</p></div></li>' for i, x in enumerate(data['hub_page']['how_we_work']['items']))
+    awards = ''.join(f'<li class="rv"><span class="y">{esc(x["year"])}</span><span>{esc(x["t"])}</span></li>' for x in a['awards'])
+    body = (f'<body data-page="/o-byuro/" data-service="about">{nav()}<main>'
+            f'<section class="hero wrap">{crumbs([("Главная", "/"), ("О бюро", None)])}<div class="meta"><span class="lbl">О бюро</span><span class="lbl">Иркутск · работаем по всей России</span></div>'
+            f'<h1 class="h1">{a["h1"]}</h1><p class="lead">{esc(a["lead"])}</p>'
+            f'<div class="actions"><a class="btn" href="/uslugi/" data-goal="cta_click">Услуги бюро <i>→</i></a><a class="arrow" href="/portfolio/">Портфолио <i>→</i></a></div>'
+            f'{hero_photo("street_french2", "Улица Французского квартала Хрустального парка: дома, аллея, вечернее солнце", "Хрустальный парк, Иркутск. Проект группы «Хрустальный»")}</section>'
+            f'<section class="sec wrap" id="fakty" style="padding-bottom:0">{facts_strip()}</section>'
+            f'<section class="sec wrap" id="istoriya"><div class="story">{story}</div></section>'
+            f'<section class="sec stone wrap" id="komanda"><div class="head"><h2 class="h2 rv">Кто <em>ведёт</em> проекты</h2><p class="txt rv">Гипотезы, продукт и защита на всех гейтах не делегируются: их ведут сооснователи.</p></div>'
+            f'<div class="teamgrid"><figure class="founders rv"><img src="{fbase}_m.webp" srcset="{fbase}_s.webp 800w, {fbase}_m.webp 1400w" sizes="(max-width:900px) 100vw, 40vw" alt="{esc(fp["alt"])}" loading="lazy" decoding="async"><figcaption class="cap">{t(fp["caption"])}</figcaption></figure><div class="members">{team}</div></div></section>'
+            f'<section class="sec dark wrap" id="pravila"><div class="head"><h2 class="h2 rv">{a["principles_title"]}</h2><p class="txt rv">Из рабочего стандарта бюро.</p></div><ol class="rules">{rules}</ol></section>'
+            f'<section class="sec wrap" id="nagrady"><div class="head"><h2 class="h2 rv">{a["awards_title"]}</h2><p class="txt rv">{t(a["awards_note"])}</p></div><ul class="awards">{awards}</ul></section>'
+            f'<section class="sec stone wrap" id="geo"><div class="grid"><div class="c4 rv"><span class="lbl">{esc(a["geo_title"])}</span></div><div class="c7 c7r rv"><p class="txt" style="max-width:60ch;font-size:clamp(17px,1.4vw,22px);line-height:1.45;color:var(--ink)">{esc(a["geo_text"])}</p></div></div></section>'
+            f'{generic_form("about", "Заявка со страницы о бюро", "Пришлите <em>информацию</em> об участке", "Кадастровый номер, схема, стадия и задача своими словами. За 30 минут разговора скажем, что там можно, а что нельзя, и с чего имеет смысл начинать.", "Прислать информацию об участке")}'
+            f'</main>{footer()}</body></html>')
+    return head(a['seo']['title'], a['seo']['description'], url, f'{SITE}/assets/img/uslugi/street_french2_og.jpg', ld) + body
+
+def contacts_page():
+    _ctx['page'] = '/kontakty/'; _ctx['block'] = 'Контакты'
+    c = site['contacts']; url = f'{SITE}/kontakty/'
+    title = 'Контакты концепт-бюро «Хрустальный», Иркутск: телефон, Telegram, почта'
+    desc = 'Связаться с концепт-бюро «Хрустальный»: телефон, Telegram, почта. Бюро в Иркутске, работаем с девелоперами и землевладельцами по всей России.'
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "ProfessionalService", "@id": SITE + '/#business', "name": cfg['site']['name'], "url": SITE + '/', "telephone": c['phone_tel'], "email": c['email'],
+         "address": {"@type": "PostalAddress", "addressLocality": "Иркутск", "addressCountry": "RU"}, "areaServed": "RU", "sameAs": [x['url'] for x in c['social']],
+         "openingHours": "Mo-Fr 09:00-18:00"},
+        {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Контакты", "item": url}]}]}
+    soc = ''.join(f'<a href="{x["url"]}" rel="noopener">{esc(x["title"])}</a>' for x in c['social'])
+    body = (f'<body data-page="/kontakty/" data-service="contacts">{nav()}<main>'
+            f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Контакты", None)])}<div class="meta"><span class="lbl">Контакты</span><span class="cap">{esc(c["hours"])}</span></div>'
+            f'<h1 class="h1">Напишите <em>или позвоните</em></h1><p class="lead">Первый разговор занимает полчаса и ничего не стоит. Удобнее всего Telegram: там отвечаем быстрее всего.</p></section>'
+            f'<section class="sec wrap" id="kanaly"><div class="contacts">'
+            f'<div class="rv"><span class="lbl">Telegram</span><a class="big-link" href="{c["telegram_manager"]}" rel="noopener">Написать в Telegram <i>→</i></a><p class="cap">Заявки и вопросы по проектам</p></div>'
+            f'<div class="rv"><span class="lbl">Телефон</span><a class="big-link" href="tel:{c["phone_tel"]}">{esc(c["phone_display"])}</a><p class="cap">{t(c["phone_note"])}</p></div>'
+            f'<div class="rv"><span class="lbl">Почта</span><a class="big-link" href="mailto:{c["email"]}">{esc(c["email"])}</a><p class="cap">{t(c["email_note"])}</p></div>'
+            f'<div class="rv"><span class="lbl">Офис</span><p class="big-link" style="cursor:default">{esc(c["city"])}</p><p class="cap">{t(c["address"])}</p></div>'
+            f'</div><div class="rv" style="margin-top:48px"><span class="lbl" style="display:block;margin-bottom:12px">Где читать и смотреть</span><div class="soc">{soc}</div></div></section>'
+            f'{generic_form("contacts", "Заявка со страницы контактов", "Пришлите <em>информацию</em> об участке", "Кадастровый номер, схема, стадия и задача своими словами. Ответим в ближайший рабочий день и скажем, с чего имеет смысл начинать.", "Прислать информацию об участке")}'
+            f'<section class="sec wrap" id="rekvizity"><span class="lbl">Реквизиты</span><p class="cap" style="margin-top:12px">{esc(c["legal"]["name"])} · ИНН {esc(c["legal"]["inn"])}. {t(c["legal"]["inn_note"])}</p></section>'
+            f'</main>{footer()}</body></html>')
+    return head(title, desc, url, None, ld) + body
+
+def education_page():
+    _ctx['page'] = '/obuchenie/'; _ctx['block'] = 'Обучение'
+    e = site['education']; url = f'{SITE}/obuchenie/'
+    ld = {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Обучение", "item": url}]}
+    cards = ''.join(f'<article class="edu rv"><h2 class="h3" style="font-size:clamp(26px,2.4vw,36px)">{esc(x["t"])}</h2><p class="txt" style="margin-top:14px">{esc(x["d"])}</p><p class="big" style="font-size:clamp(28px,3vw,44px);margin-top:22px">{esc(x["price"])}</p><a class="btn" href="{x["url"]}" rel="noopener" style="margin-top:22px">{esc(x["cta"])} <i>↗</i></a></article>' for x in e['items'])
+    body = (f'<body data-page="/obuchenie/" data-service="education">{nav()}<main>'
+            f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Обучение", None)])}<div class="meta"><span class="lbl">Обучение</span><span class="lbl">Отдельная ветка бюро</span></div>'
+            f'<h1 class="h1">{e["h1"]}</h1><p class="lead">{esc(e["lead"])}</p></section>'
+            f'<section class="sec wrap" id="formaty"><div class="edugrid">{cards}</div><p class="txt rv" style="margin-top:40px;max-width:60ch">{esc(e["note"])} <a class="arrow" href="/uslugi/" style="font-size:16px">Услуги бюро <i>→</i></a></p></section>'
+            f'{hero_photo("team_kristina_stage", "Кристина Яковенко на сцене, за спиной планировки домов", "Кристина Яковенко, выступление для застройщиков")}'
+            f'</main>{footer()}</body></html>')
+    return head(e['seo']['title'], e['seo']['description'], url, f'{SITE}/assets/img/uslugi/team_kristina_stage_og.jpg', ld) + body
+
+def policy_page():
+    _ctx['page'] = '/politika/'; _ctx['block'] = 'Политика'
+    c = site['contacts']; p = site['policy']; url = f'{SITE}/politika/'
+    txt = f'''<p class="txt">Настоящая политика описывает, какие персональные данные собирает {esc(c["legal"]["name"])} (далее оператор) через сайт {SITE.replace("https://", "")}, зачем и как долго их хранит. {t(p["operator_note"])}</p>
+<h2 class="h3" style="margin-top:36px">1. Какие данные собираем</h2><p class="txt">Имя, телефон или ник в Telegram, кадастровый номер или ссылку на проект и текст, который вы написали в форме. Технические данные: адрес страницы, с которой отправлена форма, метки рекламных кампаний, данные счётчика Яндекс.Метрики.</p>
+<h2 class="h3" style="margin-top:28px">2. Зачем</h2><p class="txt">Чтобы связаться с вами по заявке, подготовиться к первому разговору и понять, какие страницы сайта помогают клиентам. Рассылок по заявкам не ведём.</p>
+<h2 class="h3" style="margin-top:28px">3. Основание</h2><p class="txt">Ваше согласие, которое вы даёте, нажимая кнопку отправки формы, и статья 6 Федерального закона № 152-ФЗ «О персональных данных».</p>
+<h2 class="h3" style="margin-top:28px">4. Кому передаём</h2><p class="txt">Заявка попадает в CRM-систему оператора (Битрикс24). Статистика посещений обрабатывается сервисом Яндекс.Метрика. Третьим лицам данные не продаём и не передаём.</p>
+<h2 class="h3" style="margin-top:28px">5. Сколько храним</h2><p class="txt">Пока вы не попросите удалить данные или пока не пройдёт три года с последнего контакта.</p>
+<h2 class="h3" style="margin-top:28px">6. Ваши права</h2><p class="txt">Вы можете запросить, какие данные о вас есть, исправить их или попросить удалить. Для этого напишите на <a href="mailto:{c["email"]}" style="text-decoration:underline">{esc(c["email"])}</a> или в <a href="{c["telegram_manager"]}" style="text-decoration:underline">Telegram</a>.</p>
+<p class="cap" style="margin-top:36px">Редакция от {esc(p["updated"])}.</p>'''
+    body = (f'<body data-page="/politika/" data-service="policy">{nav()}<main><section class="hero wrap short">{crumbs([("Главная", "/"), ("Политика обработки данных", None)])}'
+            f'<h1 class="h1" style="font-size:clamp(40px,7vw,96px)">Политика <em>обработки данных</em></h1></section><section class="sec wrap" style="padding-top:24px"><div class="grid"><div class="c8">{txt}</div></div></section></main>{footer()}</body></html>')
+    return head(p['title'] + '. Концепт-бюро «Хрустальный»', 'Какие данные собирает сайт концепт-бюро «Хрустальный», зачем, на каком основании и как их удалить.', url) + body
+
+def notfound_page():
+    _ctx['page'] = '/404.html'
+    body = (f'<body data-page="/404" data-service="404">{nav()}<main><section class="hero wrap short"><div class="meta"><span class="lbl">Ошибка 404</span></div>'
+            f'<h1 class="h1">Такой страницы <em>нет</em></h1><p class="lead">Возможно, адрес изменился при переезде сайта. Ниже всё, что есть.</p>'
+            f'<div class="actions"><a class="btn" href="/uslugi/">Услуги <i>→</i></a><a class="arrow" href="/portfolio/">Портфолио <i>→</i></a><a class="arrow" href="/">Главная <i>→</i></a></div></section></main>{footer()}</body></html>')
+    return head('Страница не найдена. Концепт-бюро «Хрустальный»', 'Страницы нет. Услуги, портфолио и контакты концепт-бюро «Хрустальный».', SITE + '/404.html') + body
+
 
 # ---------- сборка ----------
 def write(path, content):
@@ -372,7 +485,12 @@ def main():
     if not only:
         write('uslugi/index.html', hub_page()); pages.append('/uslugi/')
         write('index.html', home_page())
-    reg = {"site": {"root": "/", "services": "/uslugi/", "portfolio": cfg['site']['portfolio'], "home": cfg['site']['home'], "request": "/uslugi/#zayavka", "telegram": cfg['contacts']['manager']['telegram']},
+        write('o-byuro/index.html', about_page()); pages.append('/o-byuro/')
+        write('kontakty/index.html', contacts_page()); pages.append('/kontakty/')
+        write('obuchenie/index.html', education_page()); pages.append('/obuchenie/')
+        write('politika/index.html', policy_page()); pages.append('/politika/')
+        write('404.html', notfound_page())
+    reg = {"site": {"root": "/", "services": "/uslugi/", "portfolio": cfg['site']['portfolio'], "home": cfg['site']['home'], "request": "/uslugi/#zayavka", "telegram": cfg['contacts']['manager']['telegram'], "nav": site["nav"]},
            "services": [{"slug": sl, "title": BY[sl]['title'], "short": BY[sl].get('short', ''), "price": BY[sl]['price']['display'], "duration": plain(BY[sl]['duration']), "url": f"/uslugi/{sl}/", "side": sl in SIDE} for sl in ORDER + SIDE]}
     write('services.json', json.dumps(reg, ensure_ascii=False, indent=1))
     today = datetime.date.today().isoformat()

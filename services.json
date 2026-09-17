@@ -5,7 +5,25 @@
   "portfolio": "/portfolio/",
   "home": "https://hrustalni.com",
   "request": "/uslugi/#zayavka",
-  "telegram": "https://t.me/annaHrustalni"
+  "telegram": "https://t.me/annaHrustalni",
+  "nav": [
+   {
+    "title": "Услуги",
+    "url": "/uslugi/"
+   },
+   {
+    "title": "Портфолио",
+    "url": "/portfolio/"
+   },
+   {
+    "title": "О бюро",
+    "url": "/o-byuro/"
+   },
+   {
+    "title": "Контакты",
+    "url": "/kontakty/"
+   }
+  ]
  },
  "services": [
   {

@@ -390,3 +390,66 @@ html.js .rv.in{opacity:1;transform:none}
 .tile:hover .ph img{transform:scale(1.05)}
 .tile .lbl{margin-top:8px}
 .tile .t{font:400 clamp(24px,2.2vw,32px)/1 var(--head);text-transform:uppercase}
+
+/* ===== страницы бюро и кинематографика ===== */
+/* сцена на главной: фото навылет с параллаксом, гигантское слово */
+.scene{position:relative;min-height:88vh;display:flex;align-items:flex-end;overflow:hidden;background:var(--deep);color:#fff;margin-top:clamp(40px,8vh,96px)}
+.scene .ph{position:absolute;inset:-12% 0;will-change:transform}
+.scene .ph img{width:100%;height:100%;object-fit:cover;opacity:.9}
+.scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,24,37,.15) 0%,rgba(2,24,37,.35) 45%,rgba(2,24,37,.9) 100%)}
+.scene .wrap{position:relative;z-index:1;padding-block:clamp(64px,10vh,120px);width:100%}
+.scene .giant{font:400 clamp(56px,11vw,180px)/.86 var(--head);letter-spacing:-.015em;text-transform:uppercase;max-width:12ch;text-wrap:balance}
+.scene .lines{list-style:none;padding:0;margin:32px 0 28px;display:grid;gap:10px;max-width:56ch;color:var(--w70);font-size:clamp(16px,1.3vw,20px)}
+.scene .lines li{padding-left:22px;position:relative}
+.scene .lines li:before{content:"";position:absolute;left:0;top:.7em;width:10px;height:1px;background:currentColor;opacity:.6}
+.scene .arrow{color:#fff}
+/* награды строкой */
+.awline{padding-block:clamp(28px,4vh,48px);display:grid;gap:14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);align-items:center}
+@media(min-width:900px){.awline{grid-template-columns:auto 1fr auto;gap:32px}}
+.awline .items{display:flex;flex-wrap:wrap;gap:8px 28px;font:400 clamp(18px,1.6vw,24px)/1.1 var(--head);text-transform:uppercase;letter-spacing:.02em}
+.awards{list-style:none;padding:0;border-top:1px solid var(--line)}
+.awards li{display:grid;grid-template-columns:96px 1fr;gap:16px;padding:18px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.awards .y{font:400 24px/1 var(--head);color:var(--taupe)}
+/* история и команда */
+.story{display:grid;gap:40px}
+@media(min-width:900px){.story{grid-template-columns:repeat(3,1fr);gap:var(--gap)}}
+.teamgrid{display:grid;gap:40px}
+@media(min-width:900px){.teamgrid{grid-template-columns:minmax(280px,40%) 1fr;gap:var(--gap);align-items:start}}
+.founders img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.founders figcaption{margin-top:12px}
+.members{display:grid;gap:36px}
+@media(min-width:700px){.members{grid-template-columns:1fr 1fr;gap:var(--gap)}}
+.member .ph{display:block;aspect-ratio:4/5;overflow:hidden;background:var(--stone);margin-bottom:18px}
+.member .ph img{width:100%;height:100%;object-fit:cover;object-position:top}
+.member .ph.empty{background:repeating-linear-gradient(135deg,#EDEEF0 0 10px,#F3F4F6 10px 20px)}
+/* контакты */
+.contacts{display:grid;gap:32px}
+@media(min-width:800px){.contacts{grid-template-columns:1fr 1fr;gap:48px var(--gap)}}
+.big-link{display:block;font:400 clamp(26px,3vw,44px)/1.05 var(--head);text-transform:uppercase;margin:12px 0 8px;letter-spacing:.01em}
+.big-link i{font-style:normal;display:inline-block;transition:transform .3s}
+.big-link:hover i{transform:translateX(5px)}
+.soc{display:flex;flex-wrap:wrap;gap:10px}
+.soc a{border:1px solid var(--line);border-radius:3px;padding:10px 14px 9px;font-size:14px;transition:border-color .3s,background .3s,color .3s}
+.soc a:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* обучение */
+.edugrid{display:grid;gap:40px}
+@media(min-width:900px){.edugrid{grid-template-columns:1fr 1fr;gap:var(--gap)}}
+.edu{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-direction:column;align-items:flex-start}
+.edu .txt{flex:1}
+/* подвал с колонками */
+.footer{display:block;padding:clamp(40px,6vh,64px) var(--m) 32px}
+.footer .ftop{display:grid;gap:18px;padding-bottom:28px;border-bottom:1px solid var(--wline)}
+@media(min-width:900px){.footer .ftop{grid-template-columns:auto 1fr;gap:48px;align-items:center}.footer .ftop .cap{max-width:60ch;justify-self:end;text-align:right}}
+.footer .fcols{display:grid;gap:28px;padding:28px 0;border-bottom:1px solid var(--wline)}
+@media(min-width:700px){.footer .fcols{grid-template-columns:repeat(3,1fr);gap:var(--gap)}}
+.footer .fcols .lbl{display:block;color:var(--w55);margin-bottom:12px}
+.footer .fcols a{display:block;padding:4px 0;font-size:14px}
+.footer .fbot{display:flex;flex-wrap:wrap;gap:8px 28px;padding-top:20px}
+/* каскадное появление и счётчики */
+html.js .doors .door:nth-child(2),html.js .tiles .tile:nth-child(3n+2),html.js .story>div:nth-child(2){transition-delay:.12s}
+html.js .doors .door:nth-child(3),html.js .tiles .tile:nth-child(3n),html.js .story>div:nth-child(3){transition-delay:.24s}
+html.js .scene .lines li{opacity:0;transform:translateY(14px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.6,.2,1)}
+html.js .scene .lines li.in{opacity:1;transform:none}
+html.js .scene .lines li:nth-child(2){transition-delay:.15s}html.js .scene .lines li:nth-child(3){transition-delay:.3s}
+@media(prefers-reduced-motion:reduce){.scene .ph{transform:none!important}}
+@media print{.scene,.awline{display:none}}

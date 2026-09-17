@@ -35,7 +35,7 @@
   /* ---- шапка меняет цвет над фото и тёмными полосами ---- */
   var nav = document.querySelector('.nav');
   if (nav) {
-    var darkZones = document.querySelectorAll('.hero .photo, .dark');
+    var darkZones = document.querySelectorAll('.hero .photo, .dark, .scene');
     var check = function () {
       var y = 44, on = false;
       darkZones.forEach(function (z) { var r = z.getBoundingClientRect(); if (r.top <= y && r.bottom >= y) on = true; });
@@ -110,10 +110,36 @@
     diag.addEventListener('change', render);
   }
 
+  /* ---- параллакс сцены и счётчики фактов ---- */
+  var par = document.querySelectorAll('[data-parallax]');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (par.length && !reduce) {
+    var tick = false;
+    var move = function () {
+      par.forEach(function (el) {
+        var r = el.parentElement.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
+        var p = (r.top + r.height / 2 - innerHeight / 2) / innerHeight; el.style.transform = 'translateY(' + (p * -10) + '%)';
+      }); tick = false;
+    };
+    addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(move); } }, { passive: true }); move();
+  }
+  var counted = false;
+  var countUp = function () {
+    document.querySelectorAll('.facts4 b').forEach(function (b) {
+      var m = b.textContent.match(/^([\d\s]+)(.*)$/); if (!m) return;
+      var target = parseInt(m[1].replace(/\s/g, ''), 10), suffix = m[2], t0 = performance.now(), dur = 1400;
+      var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
+      var step = function (now) { var k = Math.min(1, (now - t0) / dur); k = 1 - Math.pow(1 - k, 3); b.textContent = fmt(Math.round(target * k)) + suffix; if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    });
+  };
+
   /* ---- появление при скролле ---- */
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px 40px 0px' });
-    document.querySelectorAll('.rv').forEach(function (el) { io.observe(el); });
+    document.querySelectorAll('.rv, .scene .lines li').forEach(function (el) { io.observe(el); });
+    var f4 = document.querySelector('.facts4');
+    if (f4 && !reduce) { var fio = new IntersectionObserver(function (es) { if (es[0].isIntersecting && !counted) { counted = true; countUp(); fio.disconnect(); } }, { threshold: .4 }); fio.observe(f4); }
     /* цель: дочитывание до блока стоимости */
     var price = document.querySelector('#stoimost');
     if (price) { var pio = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { goal('price_view', { service: service }); pio.disconnect(); } }); }, { threshold: .3 }); pio.observe(price); }
