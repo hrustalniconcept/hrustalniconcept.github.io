@@ -110,6 +110,29 @@ def form_block(s, inner=False):
             f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>'
             f'<div class="c6 c6r rv">{formhtml}</div></div></section>')
 
+def ladder(cur=None, dark=False):
+    """Лестница услуг с зачётами. Текущая подсвечена."""
+    rows = []
+    for i, slug in enumerate(ORDER):
+        s = BY[slug]; n = f'{i+1:02d}'
+        cls = ' '.join(filter(None, ['cur' if slug == cur else '', 'flag' if s.get('flagship') else '']))
+        title = s['title']
+        note = s['price'].get('note', '')
+        href = f'/uslugi/{slug}/'
+        inner = f'<span class="n">{n}</span><span class="t">{esc(title)}<small>{t(s["duration"])}</small></span><span class="d">{t(note)}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
+        rows.append(f'<li class="{cls}">' + (f'<a href="{href}">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
+        if slug == 'audit-proekta':
+            rows.append('<li class="off"><span>↓ Аудит засчитывается в стоимость концепции</span></li>')
+    for slug in SIDE:
+        s = BY[slug]
+        inner = f'<span class="n">·</span><span class="t">{esc(s["title"])}<small>{esc(s["short"])}</small></span><span class="d">{t(s["duration"])}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
+        rows.append(f'<li class="side{" cur" if slug == cur else ""}">' + (f'<a href="/uslugi/{slug}/">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
+    if SIDE: rows.insert(len(rows) - len(SIDE), '<li class="off sidehead"><span>Отдельно</span></li>')
+    entry = data['ladder'].get('entry')
+    first = (f'<li class="entry"><a href="#zayavka"><span class="n">00</span><span class="t">{esc(entry["title"])}<small>{esc(entry["text"])}</small></span><span class="d"></span><span class="p">{esc(entry["price"])}</span><span class="a">Начать <i>↓</i></span></a></li>' if entry else '')
+    return f'<ol class="ladder">{first}{"".join(rows)}</ol>'
+
+
 def others(cur=None):
     """«Другие услуги»: короткий список с ценами."""
     rows = []
@@ -292,9 +315,9 @@ def hub_page():
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": url}]},
         {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f'{SITE}/uslugi/{sl}/', "name": BY[sl]['title']} for i, sl in enumerate(ORDER + SIDE)]}]}
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
-            f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}<div class="meta"><span class="lbl">Услуги</span><span class="lbl">Три вопроса, с которыми приходят</span></div>'
+            f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}<div class="meta"><span class="lbl">Услуги</span><span class="lbl">Четыре работы и два отдельных входа</span></div>'
             f'<h1 class="h1">С чего <em>начать</em></h1><p class="lead">{esc(h["lead"])}</p></section>'
-            f'{doors_block()}{scope_block()}{cases_block(ids=["townhouses-150", "kazan-484"])}{diag_block("hub")}</main>{footer()}</body></html>')
+            f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div><p class="txt side rv" style="margin-top:28px;max-width:70ch">{h["doors_side"]}</p></section>{scope_block()}{cases_block(ids=["townhouses-150", "kazan-484"])}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
 # ---------- главная ----------
