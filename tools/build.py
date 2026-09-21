@@ -118,11 +118,10 @@ def ladder(cur=None, dark=False):
     for i, slug in enumerate(ORDER):
         s = BY[slug]; n = f'{i+1:02d}'
         cls = ' '.join(filter(None, ['cur' if slug == cur else '', 'flag' if s.get('flagship') else '']))
-        title = s.get('ladder_title', s['title'])
-        sub = esc(s['ladder_text']) if s.get('ladder_text') else t(s["duration"])
-        note = s['price'].get('note', '')
+        sub = f'<small class="term">{t(s["duration"])}</small><small>{esc(s["ladder_text"])}</small>' if s.get('ladder_text') else f'<small>{t(s["duration"])}</small>'
+        note = s.get('ladder_note') or s['price'].get('note', '')
         href = f'/uslugi/{slug}/'
-        inner = f'<span class="n">{n}</span><span class="t">{esc(title)}<small>{sub}</small></span><span class="d">{t(note)}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
+        inner = f'<span class="n">{n}</span><span class="t"><b class="tt">{esc(s["title"])}</b>{sub}</span><span class="d">{t(note)}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
         rows.append(f'<li class="{cls}">' + (f'<a href="{href}">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
         if slug == 'audit-proekta':
             rows.append('<li class="off"><span>↓ Аудит засчитывается в стоимость концепции</span></li>')
@@ -335,8 +334,8 @@ def hero_photo(src, alt, caption):
 def hub_page():
     _ctx['page'] = '/uslugi/'; _ctx['block'] = 'Хаб'
     url = f'{SITE}/uslugi/'; h = data['hub_page']
-    title = 'Услуги концепт-бюро «Хрустальный»: сценарии для участка, концепция посёлка, аудит проекта'
-    desc = 'С чего начать загородный проект: сценарии для участка, продуктовая концепция посёлка, аудит проекта, упаковка. Цены и сроки открыты. Четыре вопроса, чтобы понять, что нужно именно вам.'
+    title = 'Услуги концепт-бюро «Хрустальный»: гипотезы использования участка, концепция загородного проекта, аудит'
+    desc = 'С чего начать загородный проект: аудит участка или проекта, гипотезы использования участка, концепция загородного проекта, упаковка. Цены и сроки открыты. Четыре вопроса, чтобы понять, что нужно именно вам.'
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": url}]},
         {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f'{SITE}/uslugi/{sl}/', "name": BY[sl]['title']} for i, sl in enumerate(ORDER + SIDE)]}]}
@@ -351,7 +350,7 @@ def home_page():
     _ctx['page'] = '/'; _ctx['block'] = 'Главная'
     url = SITE + '/'; h = data['hub_page']
     title = 'Концепт-бюро «Хрустальный»: что строить на земле и сколько это принесёт'
-    desc = 'Концепции коттеджных посёлков и загородных проектов: сценарии для участка, продуктовая концепция, аудит проекта. Семнадцать лет строим и продаём посёлки, чужие проекты считаем так же, как свои.'
+    desc = 'Концепции коттеджных посёлков и загородных проектов: гипотезы использования участка, концепция, аудит проекта. Семнадцать лет строим и продаём посёлки, чужие проекты считаем так же, как свои.'
     ld = {"@context": "https://schema.org", "@type": "ProfessionalService", "name": cfg['site']['name'], "url": url, "sameAs": [cfg['site']['home'], cfg['contacts']['channel']], "description": desc, "areaServed": "RU",
           "founder": {"@type": "Person", "name": "Кристина Яковенко", "jobTitle": "сооснователь и директор по развитию"}}
     body = (f'<body data-page="/" data-service="home">{nav()}<main><section class="hero wrap">'
