@@ -161,19 +161,23 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var name = field('name'), contact = field('contact'), obj = field('object'), about = field('about');
+      var isEvent = form.dataset.kind === 'event', question = field('question');
       var ok = true;
       setBad(name, !name.value.trim()); ok = ok && !!name.value.trim();
       var cv = contact.value.trim(); var okc = /^(\+?\d[\d\s()-]{8,}|@?[a-zA-Z0-9_]{4,32}|https?:\/\/t\.me\/\S+)$/.test(cv);
       setBad(contact, !okc); ok = ok && okc;
+      if (isEvent) { setBad(question, !question.value.trim()); ok = ok && !!question.value.trim(); }
       if (!ok) { form.querySelector('.f.bad input').focus(); return; }
       if (field('company') && field('company').value) return; /* ловушка для ботов вместо капчи */
 
       var u = utm(), title = (form.dataset.serviceTitle || 'Заявка с сайта') + ': ' + name.value.trim();
       var diagv = field('diag') ? field('diag').value : '';
-      var comments = ['Услуга: ' + (form.dataset.serviceTitle || ''), diagv ? 'Диагност:\n' + diagv : '', 'Объект / кадастровый номер: ' + (obj.value.trim() || 'не указан'),
+      var evParts = [];
+      if (isEvent) { var it = form.querySelector('input[name="interest"]:checked'); evParts = ['Интерес: ' + (it ? it.nextElementSibling.textContent : 'не указан'), 'Компания и город: ' + (field('company_city').value.trim() || 'не указано'), 'Вопрос для разбора: ' + question.value.trim()]; }
+      var comments = ['Услуга: ' + (form.dataset.serviceTitle || ''), diagv ? 'Диагност:\n' + diagv : ''].concat(evParts, [obj ? 'Объект / кадастровый номер: ' + (obj.value.trim() || 'не указан') : '',
         about && about.value.trim() ? 'О проекте: ' + about.value.trim() : '', 'Страница: ' + location.href,
         'Первый заход: ' + (store.get('hr_landing') || ''), 'Реферер: ' + (store.get('hr_referrer') || 'прямой'),
-        'UTM: ' + (Object.keys(u).length ? JSON.stringify(u) : 'нет')].filter(Boolean).join('\n');
+        'UTM: ' + (Object.keys(u).length ? JSON.stringify(u) : 'нет')]).filter(Boolean).join('\n');
       var fields = { TITLE: title, NAME: name.value.trim(), COMMENTS: comments, SOURCE_ID: (cfg.bitrix && cfg.bitrix.source_id) || 'WEB',
         SOURCE_DESCRIPTION: 'Сайт бюро, ' + service + ', ' + page, OPENED: 'Y',
         UTM_SOURCE: u.utm_source || '', UTM_MEDIUM: u.utm_medium || '', UTM_CAMPAIGN: u.utm_campaign || '', UTM_CONTENT: u.utm_content || '', UTM_TERM: u.utm_term || '' };
