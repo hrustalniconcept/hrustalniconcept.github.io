@@ -23,7 +23,7 @@ button{font:inherit;color:inherit}
 /* типографика */
 .h1{font:400 clamp(52px,11vw,150px)/.88 var(--head);letter-spacing:-.01em;text-transform:uppercase;text-wrap:balance}
 .h2{font:400 clamp(36px,5.5vw,80px)/.95 var(--head);letter-spacing:-.005em;text-transform:uppercase;text-wrap:balance;max-width:16ch}
-.h1 em,.h2 em{font-style:normal;background:var(--navy);color:#fff;padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.h1 em,.h2 em{font-style:normal;background:linear-gradient(var(--navy),var(--navy)) no-repeat 0 0/100% .87em;color:#fff;padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 .dark .h2 em{background:#fff;color:var(--navy)}
 .h3{font:400 clamp(22px,1.9vw,28px)/1 var(--head);text-transform:uppercase;letter-spacing:.01em}
 .word{font:400 clamp(28px,3.2vw,44px)/1 var(--head);text-transform:uppercase;letter-spacing:.01em}
@@ -235,7 +235,7 @@ body.menu-open{overflow:hidden}
 .ladder .t small.term+small{margin-top:4px;max-width:62ch}
 .ladder .d{font-size:13px;color:var(--taupe)}
 .ladder .p{font:400 clamp(20px,2vw,28px)/1 var(--head);white-space:nowrap;justify-self:end}
-.ladder .p small{display:block;font:400 12px/1.4 var(--sans);color:var(--taupe);margin-top:6px;text-align:right}
+.ladder .p small{display:block;font:400 12px/1.4 var(--sans);color:var(--taupe);margin-top:8px;text-align:right;white-space:normal;max-width:26ch;margin-left:auto}
 .ladder .a{font:400 18px/1 var(--head);text-transform:uppercase;white-space:nowrap}
 .ladder .a i{display:inline-block;font-style:normal;transition:transform .3s}
 .ladder a:hover .a i{transform:translateX(5px)}
@@ -243,7 +243,7 @@ body.menu-open{overflow:hidden}
 .ladder li.cur .n{color:var(--navy)}
 .ladder .t .tt{font:inherit}
 .ladder li.flag .tt:after{content:"флагман";display:inline-block;font:500 10px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;border:1px solid currentColor;padding:5px 7px 4px;margin-left:12px;vertical-align:middle;border-radius:2px}
-@media(max-width:899px){.ladder .d{display:none}.ladder .p{grid-column:3}.ladder .a{display:none}}
+@media(max-width:899px){.ladder a{grid-template-columns:44px 1fr}.ladder .d{grid-column:2;margin-top:10px}.ladder .p{grid-column:2;justify-self:start;margin-top:12px}.ladder .p small{max-width:none;margin-left:0;margin-top:4px;text-align:left;text-align-last:left}.ladder .a{display:none}}
 .ladder li.off{border:0}
 .ladder li.off span{display:block;padding:10px 0 14px 64px;font-size:13px;color:var(--taupe)}
 @media(max-width:899px){.ladder li.off span{padding-left:58px}}
@@ -321,6 +321,10 @@ html.js .rv.in{opacity:1;transform:none}
 /* три двери */
 .hero.short{padding-bottom:0}
 .hero.short .lead{margin-bottom:0}
+.lead p+.bul,.lead .bul+p{margin-top:16px}
+.lead .bul{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.lead .bul li{position:relative;padding-left:22px}
+.lead .bul li:before{content:"";position:absolute;left:0;top:.58em;width:8px;height:2px;background:var(--navy)}
 .doors{display:grid;gap:0;border-top:1px solid var(--line)}
 @media(min-width:900px){.doors{grid-template-columns:repeat(3,1fr);gap:0 var(--gap)}}
 .door{display:flex;flex-direction:column;gap:14px;padding:28px 0 32px;border-bottom:1px solid var(--line);color:var(--ink);position:relative}
@@ -464,3 +468,10 @@ html.js .scene .lines li:nth-child(2){transition-delay:.15s}html.js .scene .line
 .form .opt span{font:inherit;letter-spacing:0;text-transform:none}
 .profile .quote-l{font:400 clamp(17px,1.35vw,21px)/1.4 var(--sans);letter-spacing:-.012em;margin-bottom:14px;color:var(--ink)}
 .members.rv .h3{font-size:24px}
+
+/* хаб услуг: выключка по формату */
+@media(min-width:900px){
+body[data-page="/uslugi/"] .lead,body[data-page="/uslugi/"] .lead p,body[data-page="/uslugi/"] .txt,body[data-page="/uslugi/"] .ladder .t small,body[data-page="/uslugi/"] .ladder .d{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+body[data-page="/uslugi/"] .lead .bul li{text-align:left}
+body[data-page="/uslugi/"] .ladder .p small{text-align:justify;text-align-last:right}
+}

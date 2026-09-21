@@ -119,9 +119,10 @@ def ladder(cur=None, dark=False):
         s = BY[slug]; n = f'{i+1:02d}'
         cls = ' '.join(filter(None, ['cur' if slug == cur else '', 'flag' if s.get('flagship') else '']))
         sub = f'<small class="term">{t(s["duration"])}</small><small>{esc(s["ladder_text"])}</small>' if s.get('ladder_text') else f'<small>{t(s["duration"])}</small>'
-        note = s.get('ladder_note') or s['price'].get('note', '')
+        note = s['price'].get('note', '')
+        pricenote = f'<small>{t(note)}</small>' if s.get('ladder_result') and note else ''
         href = f'/uslugi/{slug}/'
-        inner = f'<span class="n">{n}</span><span class="t"><b class="tt">{esc(s["title"])}</b>{sub}</span><span class="d">{t(note)}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
+        inner = f'<span class="n">{n}</span><span class="t"><b class="tt">{esc(s["title"])}</b>{sub}</span><span class="d">{t(s.get("ladder_result") or note)}</span><span class="p">{esc(s["price"]["display"])}{pricenote}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
         rows.append(f'<li class="{cls}">' + (f'<a href="{href}">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
         if slug == 'audit-proekta':
             rows.append('<li class="off"><span>↓ Аудит засчитывается в стоимость концепции</span></li>')
@@ -341,7 +342,8 @@ def hub_page():
         {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f'{SITE}/uslugi/{sl}/', "name": BY[sl]['title']} for i, sl in enumerate(ORDER + SIDE)]}]}
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
             f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}'
-            f'<h1 class="h1">С чем к нам <em>обращаются клиенты</em></h1><p class="lead">{esc(h["lead"])}</p></section>'
+            f'<h1 class="h1">С чем к нам <em>обращаются клиенты</em></h1>'
+            f'<div class="lead"><p>{esc(h["lead_intro"])}</p><ul class="bul">{"".join(f"<li>{esc(x)}</li>" for x in h["lead_stages"])}</ul><p>{esc(h["lead_outro"])}</p></div></section>'
             f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div><p class="txt side rv" style="margin-top:28px;max-width:70ch">{h["doors_side"]}</p></section>{scope_block()}{portfolio_block(per_cat=1)}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
