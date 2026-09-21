@@ -132,7 +132,7 @@ def ladder(cur=None, dark=False):
         rows.append(f'<li class="side{" cur" if slug == cur else ""}">' + (f'<a href="/uslugi/{slug}/">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
     if SIDE: rows.insert(len(rows) - len(SIDE), '<li class="off sidehead"><span>Отдельно</span></li>')
     entry = data['ladder'].get('entry')
-    first = (f'<li class="entry"><a href="#zayavka"><span class="n">00</span><span class="t">{esc(entry["title"])}<small>{esc(entry["text"])}</small></span><span class="d"></span><span class="p">{esc(entry["price"])}</span><span class="a">Начать <i>↓</i></span></a></li>' if entry else '')
+    first = (f'<li class="entry"><a href="#zayavka"><span class="n">00</span><span class="t">{esc(entry["title"])}<small>{esc(entry["text"])}</small></span><span class="d">{esc(entry.get("result", ""))}</span><span class="p">{esc(entry["price"])}</span><span class="a">Начать <i>↓</i></span></a></li>' if entry else '')
     return f'<ol class="ladder">{first}{"".join(rows)}</ol>'
 
 

@@ -227,15 +227,16 @@ body.menu-open{overflow:hidden}
 .ladder{list-style:none;padding:0;border-top:1px solid var(--line)}
 .ladder li{border-bottom:1px solid var(--line)}
 .ladder a{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:18px 0;transition:transform .4s}
-@media(min-width:900px){.ladder a{grid-template-columns:64px minmax(0,1.4fr) minmax(0,1fr) auto auto;gap:var(--gap)}}
+@media(min-width:900px){.ladder a{grid-template-columns:56px minmax(0,1.5fr) minmax(0,1fr) 168px 22px;gap:var(--gap)}.ladder li.side .p{white-space:normal}}
+@media(min-width:1200px){.ladder a{grid-template-columns:64px minmax(0,1.6fr) minmax(0,1fr) 210px 110px}}
 .ladder .n{font:400 26px/1 var(--head);color:var(--taupe)}
 .ladder .t{font:400 clamp(22px,2.4vw,34px)/1 var(--head);text-transform:uppercase}
 .ladder .t small{display:block;font:400 12px/1.4 var(--sans);color:var(--taupe);text-transform:none;margin-top:6px}
 .ladder .t small.term{color:var(--ink);letter-spacing:.02em;margin-top:8px}
 .ladder .t small.term+small{margin-top:4px;max-width:62ch}
 .ladder .d{font-size:13px;color:var(--taupe)}
-.ladder .p{font:400 clamp(20px,2vw,28px)/1 var(--head);white-space:nowrap;justify-self:end}
-.ladder .p small{display:block;font:400 12px/1.4 var(--sans);color:var(--taupe);margin-top:8px;text-align:right;white-space:normal;max-width:26ch;margin-left:auto}
+.ladder .p{font:400 clamp(20px,2vw,28px)/1 var(--head);white-space:nowrap;justify-self:start}
+.ladder .p small{display:block;font:400 12px/1.4 var(--sans);color:var(--taupe);margin-top:8px;text-align:left;white-space:normal;max-width:26ch}
 .ladder .a{font:400 18px/1 var(--head);text-transform:uppercase;white-space:nowrap}
 .ladder .a i{display:inline-block;font-style:normal;transition:transform .3s}
 .ladder a:hover .a i{transform:translateX(5px)}
@@ -272,7 +273,7 @@ html.js .rv.in{opacity:1;transform:none}
 }
 .ladder li.entry a{border-left:3px solid transparent}
 .ladder li.entry .t small{max-width:60ch}
-.ladder li.entry .p{font-family:var(--sans);font-size:13px;color:var(--taupe);text-transform:none;align-self:center}
+.ladder li.entry .p{font-family:var(--sans);font-size:13px;color:var(--taupe);text-transform:none;align-self:center;justify-self:start}
 @media(max-width:899px){.hero .photo{margin-left:calc(-1 * var(--m))}.hero .photo .cap{left:16px}.ladder li.entry a{grid-template-columns:44px 1fr}.ladder li.entry .p{grid-column:2;justify-self:start}.ladder li.entry .t small{font-size:13px}}
 
 /* хаб и главная */
@@ -470,8 +471,9 @@ html.js .scene .lines li:nth-child(2){transition-delay:.15s}html.js .scene .line
 .members.rv .h3{font-size:24px}
 
 /* хаб услуг: выключка по формату */
-@media(min-width:900px){
+@media(min-width:1200px){
 body[data-page="/uslugi/"] .lead,body[data-page="/uslugi/"] .lead p,body[data-page="/uslugi/"] .txt,body[data-page="/uslugi/"] .ladder .t small,body[data-page="/uslugi/"] .ladder .d{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 body[data-page="/uslugi/"] .lead .bul li{text-align:left}
-body[data-page="/uslugi/"] .ladder .p small{text-align:justify;text-align-last:right}
+body[data-page="/uslugi/"] .ladder .p small{text-align:left}
 }
+@media(min-width:900px) and (max-width:1199px){.ladder .a{font-size:0}.ladder .a i{font-size:18px}}
