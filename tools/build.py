@@ -38,6 +38,10 @@ def is_todo(s): return bool(re.search(r'\[\[', str(s) or ''))
 
 def idx(slug): return ORDER.index(slug) + 1 if slug in ORDER else 0
 
+def has_page(slug): return BY[slug].get('page', True)
+
+def url_of(slug, root=''): return f'{root}/uslugi/{slug}/' if has_page(slug) else f'{root}/uslugi/#zayavka'
+
 def price_num(s):
     v = s['price']['value']; return f'{v:,}'.replace(',', ' ')
 
@@ -57,12 +61,12 @@ def head(title, desc, canonical, og_image=None, ld=None, preload=None):
 {pre}
 <link rel="stylesheet" href="/assets/css/site.css">
 {('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>') if ld else ''}
-<script type="application/json" id="cfg">{json.dumps({"bitrix": {k: v for k, v in cfg["bitrix"].items() if not k.startswith("_")}, "metrika": {"counter": cfg["metrika"]["counter"]}, "services": {sl: {"title": BY[sl]["title"], "gen": BY[sl].get("gen", BY[sl]["title"]), "short": BY[sl]["short"], "price": BY[sl]["price"]["display"], "duration": plain(BY[sl]["duration"]), "deliverables": [plain(x) for x in BY[sl]["deliverables"][:3]], "url": f"/uslugi/{sl}/"} for sl in ORDER + SIDE}}, ensure_ascii=False)}</script>
+<script type="application/json" id="cfg">{json.dumps({"bitrix": {k: v for k, v in cfg["bitrix"].items() if not k.startswith("_")}, "metrika": {"counter": cfg["metrika"]["counter"]}, "services": {sl: {"title": BY[sl]["title"], "gen": BY[sl].get("gen", BY[sl]["title"]), "short": BY[sl]["short"], "price": BY[sl]["price"]["display"], "duration": plain(BY[sl]["duration"]), "deliverables": [plain(x) for x in BY[sl]["deliverables"][:3]], "url": url_of(sl)} for sl in ORDER + SIDE}}, ensure_ascii=False)}</script>
 </head>'''
 
 def nav(cur_slug=None):
     tg = cfg['contacts']['manager']['telegram']
-    items = ''.join(f'<a href="/uslugi/{s["slug"]}/"{" class=cur aria-current=page" if s["slug"] == cur_slug else ""}>{esc(s["title"])}<small>{esc(s["price"]["display"])}</small></a>' for s in SERVICES)
+    items = ''.join(f'<a href="{url_of(s["slug"])}"{" class=cur aria-current=page" if s["slug"] == cur_slug else ""}>{esc(s["title"])}<small>{esc(s["price"]["display"])}</small></a>' for s in SERVICES)
     return f'''<header class="nav" id="nav">
   <a class="logo" href="/">{LOGO}Хрустальный</a>
   <nav class="links" aria-label="Разделы">{''.join(f'<a href="{x["url"]}"{" aria-current=page" if x["url"] == _ctx["page"] else ""}>{esc(x["title"])}</a>' for x in site["nav"])}</nav>
@@ -81,7 +85,7 @@ def nav(cur_slug=None):
 def footer():
     c = site['contacts']
     cols = (f'<div><span class="lbl">Бюро</span><a href="/o-byuro/">О бюро</a><a href="/portfolio/">Портфолио</a><a href="/uslugi/">Услуги</a><a href="/obuchenie/">Обучение</a><a href="/kontakty/">Контакты</a></div>'
-            f'<div><span class="lbl">Услуги</span>' + ''.join(f'<a href="/uslugi/{sl}/">{esc(BY[sl]["title"])}</a>' for sl in ORDER + SIDE) + '</div>'
+            f'<div><span class="lbl">Услуги</span>' + ''.join(f'<a href="{url_of(sl)}">{esc(BY[sl]["title"])}</a>' for sl in ORDER + SIDE) + '</div>'
             f'<div><span class="lbl">Связь</span><a href="{c["telegram_manager"]}" rel="noopener">Telegram</a><a href="tel:{c["phone_tel"]}">{esc(c["phone_display"])}</a><a href="mailto:{c["email"]}">{esc(c["email"])}</a><a href="{c["telegram_channel"]}" rel="noopener">Telegram-канал</a></div>')
     return (f'<footer class="footer"><div class="ftop"><a class="logo" href="/">{LOGO}Хрустальный</a><p class="cap">Концепт-бюро группы «Хрустальный». {esc(cfg["facts"]["years"])}, {esc(cfg["facts"]["settlements"])}, {esc(cfg["facts"]["residents"])}. Иркутск, работаем по всей России.</p></div>'
             f'<div class="fcols">{cols}</div><div class="fbot"><span class="cap">{esc(c["legal"]["name"])} · ИНН {esc(c["legal"]["inn"])}</span><a class="cap" href="/politika/">Политика обработки данных</a><a class="cap" href="{cfg["site"]["home"]}">hrustalni.com</a></div></footer>'
@@ -128,9 +132,12 @@ def ladder(cur=None, dark=False):
             rows.append('<li class="off"><span>↓ Аудит засчитывается в стоимость концепции</span></li>')
     for slug in SIDE:
         s = BY[slug]
-        inner = f'<span class="n">·</span><span class="t">{esc(s["title"])}<small>{esc(s["short"])}</small></span><span class="d">{t(s["duration"])}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
-        rows.append(f'<li class="side{" cur" if slug == cur else ""}">' + (f'<a href="/uslugi/{slug}/">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
-    if SIDE: rows.insert(len(rows) - len(SIDE), '<li class="off sidehead"><span>Отдельно</span></li>')
+        sub = f'<small class="term">{t(s["duration"])}</small><small>{esc(s.get("ladder_text") or s["short"])}</small>'
+        note = s.get('ladder_note') or s['price'].get('note', '')
+        act = 'Вы здесь' if slug == cur else ('Подробнее <i>→</i>' if has_page(slug) else 'Обсудить <i>↓</i>')
+        inner = f'<span class="n">·</span><span class="t"><b class="tt">{esc(s["title"])}</b>{sub}</span><span class="d">{t(s.get("ladder_result", ""))}</span><span class="p">{esc(s["price"]["display"])}<small>{t(note)}</small></span><span class="a">{act}</span>'
+        rows.append(f'<li class="side{" cur" if slug == cur else ""}">' + (f'<a href="{url_of(slug)}">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
+    if SIDE: rows.insert(len(rows) - len(SIDE), f'<li class="off sidehead"><span>{esc(data["ladder"].get("side_title", "Отдельно"))}</span></li>')
     entry = data['ladder'].get('entry')
     first = (f'<li class="entry"><a href="#zayavka"><span class="n">00</span><span class="t">{esc(entry["title"])}<small>{esc(entry["text"])}</small></span><span class="d">{esc(entry.get("result", ""))}</span><span class="p">{esc(entry["price"])}</span><span class="a">Начать <i>↓</i></span></a></li>' if entry else '')
     return f'<ol class="ladder">{first}{"".join(rows)}</ol>'
@@ -142,7 +149,7 @@ def others(cur=None):
     for slug in ORDER + SIDE:
         if slug == cur: continue
         s = BY[slug]
-        rows.append(f'<li><a href="/uslugi/{slug}/"><span class="t">{esc(s["title"])}<small>{esc(s["short"])}</small></span><span class="p">{esc(s["price"]["display"])}<small>{esc(plain(s["duration"]) or "срок по объёму")}</small></span><span class="a">Подробнее <i>→</i></span></a></li>')
+        rows.append(f'<li><a href="{url_of(slug)}"><span class="t">{esc(s["title"])}<small>{esc(s["short"])}</small></span><span class="p">{esc(s["price"]["display"])}<small>{esc(plain(s["duration"]) or "срок по объёму")}</small></span><span class="a">Подробнее <i>→</i></span></a></li>')
     return '<ul class="others">' + ''.join(rows) + '</ul>'
 
 def doors_block():
@@ -339,7 +346,7 @@ def hub_page():
     desc = 'С чего начать загородный проект: аудит участка или проекта, гипотезы использования участка, концепция загородного проекта, упаковка. Цены и сроки открыты. Четыре вопроса, чтобы понять, что нужно именно вам.'
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": url}]},
-        {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f'{SITE}/uslugi/{sl}/', "name": BY[sl]['title']} for i, sl in enumerate(ORDER + SIDE)]}]}
+        {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": url_of(sl, SITE), "name": BY[sl]['title']} for i, sl in enumerate(ORDER + SIDE)]}]}
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
             f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}'
             f'<h1 class="h1">С чем к нам <em>обращаются клиенты</em></h1>'
@@ -534,6 +541,7 @@ def main():
     pages = []
     for s in SERVICES:
         if only and s['slug'] != only: continue
+        if not has_page(s['slug']): continue
         write(f'uslugi/{s["slug"]}/index.html', service_page(s)); pages.append(f'/uslugi/{s["slug"]}/')
     if not only:
         write('uslugi/index.html', hub_page()); pages.append('/uslugi/')
@@ -546,7 +554,7 @@ def main():
         for ef in sorted(glob.glob(C('events', '*.json'))):
             ev = json.load(open(ef)); write(f'{ev["slug"]}/index.html', event_page(ev)); pages.append(f'/{ev["slug"]}/')
     reg = {"site": {"root": "/", "services": "/uslugi/", "portfolio": cfg['site']['portfolio'], "home": cfg['site']['home'], "request": "/uslugi/#zayavka", "telegram": cfg['contacts']['manager']['telegram'], "nav": site["nav"]},
-           "services": [{"slug": sl, "title": BY[sl]['title'], "short": BY[sl].get('short', ''), "price": BY[sl]['price']['display'], "duration": plain(BY[sl]['duration']), "url": f"/uslugi/{sl}/", "side": sl in SIDE} for sl in ORDER + SIDE]}
+           "services": [{"slug": sl, "title": BY[sl]['title'], "short": BY[sl].get('short', ''), "price": BY[sl]['price']['display'], "duration": plain(BY[sl]['duration']), "url": url_of(sl), "side": sl in SIDE} for sl in ORDER + SIDE]}
     write('services.json', json.dumps(reg, ensure_ascii=False, indent=1))
     today = datetime.date.today().isoformat()
     write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{SITE}{p}</loc><lastmod>{today}</lastmod></url>' for p in ['/'] + pages) + '</urlset>')

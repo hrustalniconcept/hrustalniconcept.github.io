@@ -337,7 +337,7 @@ html.js .rv.in{opacity:1;transform:none}
 .door .arrow{margin-top:6px}
 .door:hover .arrow{border-color:currentColor}
 .doors+.side{margin-top:28px;max-width:70ch}
-.side a{text-decoration:underline;text-underline-offset:4px}
+p.side a{text-decoration:underline;text-underline-offset:4px}
 
 /* диагност */
 .diag{display:grid;gap:26px;margin-top:28px}
