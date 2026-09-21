@@ -118,10 +118,11 @@ def ladder(cur=None, dark=False):
     for i, slug in enumerate(ORDER):
         s = BY[slug]; n = f'{i+1:02d}'
         cls = ' '.join(filter(None, ['cur' if slug == cur else '', 'flag' if s.get('flagship') else '']))
-        title = s['title']
+        title = s.get('ladder_title', s['title'])
+        sub = esc(s['ladder_text']) if s.get('ladder_text') else t(s["duration"])
         note = s['price'].get('note', '')
         href = f'/uslugi/{slug}/'
-        inner = f'<span class="n">{n}</span><span class="t">{esc(title)}<small>{t(s["duration"])}</small></span><span class="d">{t(note)}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
+        inner = f'<span class="n">{n}</span><span class="t">{esc(title)}<small>{sub}</small></span><span class="d">{t(note)}</span><span class="p">{esc(s["price"]["display"])}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
         rows.append(f'<li class="{cls}">' + (f'<a href="{href}">{inner}</a>' if slug != cur else f'<a aria-current="page">{inner}</a>') + '</li>')
         if slug == 'audit-proekta':
             rows.append('<li class="off"><span>↓ Аудит засчитывается в стоимость концепции</span></li>')
@@ -340,8 +341,8 @@ def hub_page():
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": url}]},
         {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f'{SITE}/uslugi/{sl}/', "name": BY[sl]['title']} for i, sl in enumerate(ORDER + SIDE)]}]}
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
-            f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}<div class="meta"><span class="lbl">Услуги</span><span class="lbl">Четыре работы и два отдельных входа</span></div>'
-            f'<h1 class="h1">С чего <em>начать</em></h1><p class="lead">{esc(h["lead"])}</p></section>'
+            f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}'
+            f'<h1 class="h1">С чем к нам <em>обращаются клиенты</em></h1><p class="lead">{esc(h["lead"])}</p></section>'
             f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div><p class="txt side rv" style="margin-top:28px;max-width:70ch">{h["doors_side"]}</p></section>{scope_block()}{portfolio_block(per_cat=1)}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
