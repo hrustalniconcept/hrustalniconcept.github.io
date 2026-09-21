@@ -484,9 +484,11 @@ def event_page(ev):
         {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q['q'], "acceptedAnswer": {"@type": "Answer", "text": q['a']}} for q in ev['faq']]},
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Бизнес-завтрак в Екатеринбурге", "item": url}]}]}
     facts = ''.join(f'<div><b>{esc(x["b"])}</b><span class="cap">{esc(x["cap"])}</span></div>' for x in ev['facts'])
-    topics = ''.join(f'<div class="rv"><span class="num">0{i+1}</span><h3 class="h3" style="margin:12px 0 10px">{esc(x["t"])}</h3><p class="txt">{esc(x["d"])}</p></div>' for i, x in enumerate(ev['topics']))
+    profiles = ''.join(f'<div class="profile rv"><span class="num">0{i+1}</span><h3 class="h3" style="margin:12px 0 14px">{esc(x["t"])}</h3><p class="quote-l">{esc(x["q"])}</p><p class="txt">{esc(x["d"])}</p></div>' for i, x in enumerate(ev['profiles']))
+    notfor = ''.join(f'<li><i>×</i><p>{esc(x)}</p></li>' for x in ev['not_for'])
+    topics = ''.join(f'<li class="rv"><span class="num">0{i+1}</span><div><h3 class="h3">{esc(x["t"])}</h3><p class="txt" style="margin-top:10px">{esc(x["d"])}</p></div></li>' for i, x in enumerate(ev['topics']))
+    points = ''.join(f'<li><i>·</i><p>{esc(x)}</p></li>' for x in ev['about_points'])
     hosts = ''.join(f'<div class="rv"><h3 class="h3">{esc(h["name"])}</h3><p class="cap" style="margin:6px 0 12px">{esc(h["role"])}</p><p class="txt">{esc(h["d"])}</p></div>' for h in ev['hosts'])
-    li = lambda items, mark: ''.join(f'<li><i>{mark}</i><p>{esc(x)}</p></li>' for x in items)
     terms = ''.join(f'<li class="rv"><span class="lbl">{esc(x["t"])}</span><h3 class="h3" style="margin:10px 0 8px;font-size:22px">{esc(x["d"].split(".")[0])}</h3><p>{esc(".".join(x["d"].split(".")[1:]).strip())}</p></li>' for x in ev['terms'])
     fq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{esc(q["q"])}<i></i></summary><div class="a">{esc(q["a"])}</div></details>' for i, q in enumerate(ev['faq']))
     interest = ''.join(f'<label class="opt"><input type="radio" name="interest" value="{v}"{" checked" if i == 0 else ""}><span>{esc(l)}</span></label>' for i, (v, l) in enumerate(f['interest']))
@@ -501,23 +503,24 @@ def event_page(ev):
             f'<div class="f" style="position:absolute;left:-9999px" aria-hidden="true"><label for="f-hp">Компания</label><input id="f-hp" name="company" type="text" tabindex="-1" autocomplete="off"></div>'
             f'<div class="foot"><button class="btn" type="submit"><span>{esc(f["cta"])}</span><i>→</i></button><p class="cap">Нажимая кнопку, вы соглашаетесь с <a href="/politika/">политикой обработки данных</a>. Один звонок накануне встречи и адрес, без рассылок.</p></div>'
             f'<p class="msg" role="alert"></p><input type="hidden" name="diag" value=""></form>'
-            f'<!-- Место для виджета GetCourse, если решите собирать заявки через него: вставить код виджета вместо формы выше -->')
+            f'<!-- Место для виджета GetCourse: вставить код виджета вместо формы выше -->')
     body = (f'<body data-page="/{slug}/" data-service="{slug}">{nav()}<main>'
             f'<section class="hero wrap">{crumbs([("Главная", "/"), ("Бизнес-завтрак в Екатеринбурге", None)])}<div class="meta"><span class="lbl">{esc(ev["label"])}</span><span class="lbl">{esc(ev["date_prelim"])}</span></div>'
             f'<h1 class="h1">{ev["h1"]}</h1><p class="lead">{esc(ev["lead"])}</p><p class="cap" style="margin-top:14px;max-width:60ch">{esc(ev["date_note"])}</p>'
-            f'<div class="facts">{facts}</div><div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(ev["cta"])} <i>→</i></a><a class="arrow" href="#o-chem">О чём поговорим <i>↓</i></a></div>'
+            f'<div class="facts">{facts}</div><div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(ev["cta"])} <i>→</i></a><a class="arrow" href="#komu">Кому будет полезно <i>↓</i></a></div>'
             f'{hero_photo(ev["cover"]["src"], ev["cover"]["alt"], ev["cover"]["caption"])}</section>'
-            f'<section class="sec wrap" id="o-chem"><div class="head"><h2 class="h2 rv">{ev["topics_title"]}</h2><p class="txt rv">{esc(ev["topics_lead"])}</p></div><div class="story">{topics}</div></section>'
-            f'<section class="sec stone wrap" id="vedut"><div class="head"><h2 class="h2 rv">{ev["hosts_title"]}</h2><p class="txt rv">{esc(ev["hosts_lead"])}</p></div>'
-            f'<div class="teamgrid"><figure class="founders rv"><img src="{hb}_m.webp" srcset="{hb}_s.webp 800w, {hb}_m.webp 1400w" sizes="(max-width:900px) 100vw, 40vw" alt="{esc(hp["alt"])}" loading="lazy" decoding="async"><figcaption class="cap">{t(hp["caption"])}</figcaption></figure><div class="members" style="grid-template-columns:1fr;gap:28px">{hosts}</div></div></section>'
-            f'<section class="sec dark wrap" id="piter"><div class="grid"><div class="c5 rv"><span class="lbl">Опыт</span><h2 class="h2" style="margin-top:14px">{ev["spb_title"]}</h2></div><div class="c6 c6r rv"><p class="txt" style="font-size:clamp(17px,1.4vw,22px);line-height:1.45;color:#fff;max-width:none">{esc(ev["spb_text"])}</p></div></div></section>'
-            f'<section class="sec wrap" id="komu"><div class="head"><h2 class="h2 rv">{ev["for_title"]}</h2></div><div class="two"><div class="rv"><div class="word">Подходит</div><ul class="list">{li(ev["for_whom"], "+")}</ul></div><div class="rv"><div class="word">Не подходит</div><ul class="list x">{li(ev["not_for"], "×")}</ul></div></div></section>'
+            f'<section class="sec wrap" id="komu"><div class="head"><h2 class="h2 rv">{ev["for_title"]}</h2><p class="txt rv">{esc(ev["for_lead"])}</p></div><div class="story">{profiles}</div>'
+            f'<div class="two rv" style="margin-top:48px"><div><div class="word">Не подходит</div><ul class="list x">{notfor}</ul></div><div><p class="txt" style="padding-top:8px">{esc(ev["seats_note"])}</p></div></div></section>'
+            f'<section class="sec dark wrap" id="o-chem"><div class="head"><h2 class="h2 rv">{ev["topics_title"]}</h2><p class="txt rv">{esc(ev["topics_lead"])}</p></div><ol class="rules">{topics}</ol></section>'
+            f'<section class="sec stone wrap" id="vedut"><div class="head"><h2 class="h2 rv">{ev["about_title"]}</h2><p class="txt rv">{esc(ev["about_lead"])}</p></div>'
+            f'<div class="teamgrid"><figure class="founders rv"><img src="{hb}_m.webp" srcset="{hb}_s.webp 800w, {hb}_m.webp 1400w" sizes="(max-width:900px) 100vw, 40vw" alt="{esc(hp["alt"])}" loading="lazy" decoding="async"><figcaption class="cap">{t(hp["caption"])}</figcaption></figure>'
+            f'<div><ul class="list rv">{points}</ul><div class="members rv" style="margin-top:40px">{hosts}</div></div></div></section>'
+            f'<section class="sec wrap" id="piter"><div class="grid"><div class="c5 rv"><span class="lbl">Опыт</span><h2 class="h2" style="margin-top:14px">{ev["spb_title"]}</h2></div><div class="c6 c6r rv"><p class="txt" style="font-size:clamp(17px,1.4vw,22px);line-height:1.45;color:var(--ink);max-width:none">{esc(ev["spb_text"])}</p></div></div></section>'
             f'<section class="sec stone wrap" id="kak"><div class="head"><h2 class="h2 rv">{ev["terms_title"]}</h2></div><ol class="steps" style="--n:4">{terms}</ol><p class="txt rv" style="margin-top:36px;max-width:64ch">{esc(ev["forum_line"])}</p></section>'
             f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">{esc(f["lbl"])}</span><h2 class="h2" style="margin-top:14px">{f["h2"]}</h2><div class="rule"></div><p class="txt">{esc(f["text"])}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div><div class="c6 c6r rv">{form}</div></div></section>'
             f'<section class="sec wrap" id="voprosy"><div class="head"><h2 class="h2 rv">Вопросы</h2></div><div class="faq rv">{fq}</div></section>'
             f'</main>{footer()}</body></html>')
     return head(ev['seo']['title'], ev['seo']['description'], url, f'{SITE}{hb}_og.jpg', ld) + body
-
 
 # ---------- сборка ----------
 def write(path, content):
