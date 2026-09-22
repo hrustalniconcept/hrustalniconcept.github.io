@@ -469,7 +469,7 @@ html.js .scene .lines li:nth-child(2){transition-delay:.15s}html.js .scene .line
 
 /* хаб услуг: выключка по формату */
 @media(min-width:1200px){
-body[data-page="/uslugi/"] .lead,body[data-page="/uslugi/"] .lead p,body[data-page="/uslugi/"] .txt,body[data-page="/uslugi/"] .ladder .t small,body[data-page="/uslugi/"] .ladder .d{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+body[data-page^="/uslugi/"] .lead,body[data-page^="/uslugi/"] .lead p,body[data-page^="/uslugi/"] .txt,body[data-page^="/uslugi/"] .scope-p,body[data-page^="/uslugi/"] .list li p,body[data-page^="/uslugi/"] .deliv li p,body[data-page="/uslugi/"] .ladder .t small,body[data-page="/uslugi/"] .ladder .d{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 body[data-page="/uslugi/"] .lead .bul li{text-align:left}
 body[data-page="/uslugi/"] .ladder .p small{text-align:left}
 }

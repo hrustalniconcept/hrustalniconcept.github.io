@@ -123,7 +123,7 @@ def ladder(cur=None, dark=False):
         s = BY[slug]; n = f'{i+1:02d}'
         cls = ' '.join(filter(None, ['cur' if slug == cur else '', 'flag' if s.get('flagship') else '']))
         sub = f'<small class="term">{t(s["duration"])}</small><small>{esc(s["ladder_text"])}</small>' if s.get('ladder_text') else f'<small>{t(s["duration"])}</small>'
-        note = s['price'].get('note', '')
+        note = s.get('ladder_note') or s['price'].get('note', '')
         pricenote = f'<small>{t(note)}</small>' if s.get('ladder_result') and note else ''
         href = f'/uslugi/{slug}/'
         inner = f'<span class="n">{n}</span><span class="t"><b class="tt">{esc(s["title"])}</b>{sub}</span><span class="d">{t(s.get("ladder_result") or note)}</span><span class="p">{esc(s["price"]["display"])}{pricenote}</span><span class="a">{"Вы здесь" if slug == cur else "Подробнее <i>→</i>"}</span>'
@@ -233,31 +233,38 @@ def service_page(s):
 
     # 3. что получаете: пять на виду
     _ctx['block'] = 'Что получаете на выходе'
-    dl = s['deliverables']; vis, rest = dl[:5], dl[5:]
+    dl = s['deliverables']; vis, rest = (dl, []) if len(dl) <= 6 else (dl[:5], dl[5:])
     dl_html = '<ol class="deliv">' + ''.join(f'<li><p>{t(x)}</p></li>' for x in vis) + '</ol>'
     if rest:
         dl_html += f'<details class="moredl"><summary class="arrow">Ещё {len(rest)} <i>↓</i></summary><ol class="deliv" start="6">' + ''.join(f'<li><p>{t(x)}</p></li>' for x in rest) + '</ol></details>'
     frame_img = ''
     if s.get('artifact_image'):
         ai = s['artifact_image']; frame_img = f'<img src="/assets/img/uslugi/{ai["src"]}_m.webp" alt="{esc(ai["alt"])}" loading="lazy" decoding="async">'
-    else:
+    elif not s.get('out_cta'):
         TODOS.append((_ctx['page'], 'Что получаете на выходе', 'Снимок разворота отчёта или экрана с документом для правой колонки. Пока контейнер пустой'))
     fcap = esc(s['artifact_image'].get('caption', '')) if frame_img else ''
+    if s.get('out_cta') and not frame_img:
+        aside = f'<div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["out_cta"])} <i>↓</i></a></div>'
+    else:
+        aside = f'<div class="frame{" has" if frame_img else ""}">{frame_img}<span class="cap">{fcap}</span></div>'
     out = (f'<section class="sec dark wrap" id="na-vyhode"><div class="grid">'
-           f'<div class="c7 rv"><span class="lbl">Что получаете на выходе</span><h2 class="h2" style="margin-top:14px">Что окажется <em>у вас в руках</em></h2><div class="rule"></div><div style="margin-top:28px">{dl_html}</div></div>'
-           f'<div class="c4 c4r rv" style="align-self:end"><div class="frame{" has" if frame_img else ""}">{frame_img}<span class="cap">{fcap}</span></div></div></div></section>')
+           f'<div class="c7 rv"><span class="lbl">{esc(s.get("out_lbl", "Что получаете на выходе"))}</span><h2 class="h2" style="margin-top:14px">{s.get("out_title", "Что окажется <em>у вас в руках</em>")}</h2><div class="rule"></div><div style="margin-top:28px">{dl_html}</div></div>'
+           f'<div class="c4 c4r rv" style="align-self:{"start" if s.get("out_cta") and not frame_img else "end"};margin-top:{"64px" if s.get("out_cta") and not frame_img else "0"}">{aside}</div></div></section>')
 
     # 4. стоимость
     _ctx['block'] = 'Стоимость'
     moves = s['price'].get('what_moves_it')
     moves_html = ('<ul class="list">' + ''.join(f'<li><i>·</i><p>{t(x)}</p></li>' for x in moves) + '</ul>') if moves else ''
     scale = f'<p class="txt" style="margin-top:18px">{t(s["price"]["scale_argument"])}</p>' if s['price'].get('scale_argument') else ''
-    nxt = (f' Следующий шаг: {BY[ORDER[n]]["title"]}, {BY[ORDER[n]]["price"]["display"]}.' if 0 < n < len(ORDER) else '')
+    nxt = ('' if s['price'].get('no_next') else
+           (f' Следующий шаг: {BY[ORDER[n]]["title"]}, {BY[ORDER[n]]["price"]["display"]}.' if 0 < n < len(ORDER) else ''))
+    pnote = t(s['price']['note']); pnote = pnote if pnote.rstrip().endswith(('.', '!', '?')) else pnote + '.'
+    moves_lbl = '<span class="lbl" style="display:block;margin-bottom:8px">Что двигает цену</span>' if moves_html else ''
     price = (f'<section class="sec stone wrap price" id="stoimost"><div class="grid">'
-             f'<div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span><b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["duration"])}</span>'
-             f'<p class="txt" style="margin-top:22px">{t(s["price"]["note"])}.{esc(nxt)}</p>{scale}'
+             f'<div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span><b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["price"].get("caption") or s["duration"])}</span>'
+             f'<p class="txt" style="margin-top:22px">{pnote}{esc(nxt)}</p>{scale}'
              f'<p class="txt" style="margin-top:14px"><span class="lbl" style="display:block;margin-bottom:6px">Оплата</span>{t(s["payment"])}</p></div>'
-             f'<div class="c6 c6r rv"><span class="lbl" style="display:block;margin-bottom:8px">Что двигает цену</span>{moves_html}<p class="txt" style="margin-top:22px">{t(s.get("price_long", ""))}</p>'
+             f'<div class="c6 c6r rv">{moves_lbl}{moves_html}<p class="txt" style="margin-top:22px">{t(s.get("price_long", ""))}</p>'
              f'<div class="actions" style="margin-top:28px"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a></div></div></div></section>')
 
     # 5. кейс
