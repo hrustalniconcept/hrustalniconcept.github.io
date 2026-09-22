@@ -249,7 +249,7 @@ def service_page(s):
         aside = f'<div class="frame{" has" if frame_img else ""}">{frame_img}<span class="cap">{fcap}</span></div>'
     out = (f'<section class="sec dark wrap" id="na-vyhode"><div class="grid">'
            f'<div class="c7 rv"><span class="lbl">{esc(s.get("out_lbl", "Что получаете на выходе"))}</span><h2 class="h2" style="margin-top:14px">{s.get("out_title", "Что окажется <em>у вас в руках</em>")}</h2><div class="rule"></div><div style="margin-top:28px">{dl_html}</div></div>'
-           f'<div class="c4 c4r rv" style="align-self:{"start" if s.get("out_cta") and not frame_img else "end"};margin-top:{"64px" if s.get("out_cta") and not frame_img else "0"}">{aside}</div></div></section>')
+           f'<div class="c4 c4r rv{" out-cta" if s.get("out_cta") and not frame_img else ""}" style="align-self:{"start" if s.get("out_cta") and not frame_img else "end"}">{aside}</div></div></section>')
 
     # 4. стоимость
     _ctx['block'] = 'Стоимость'
