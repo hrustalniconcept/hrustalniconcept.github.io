@@ -166,7 +166,8 @@ def doors_block():
 def scope_block():
     _ctx['block'] = 'Границы работы'
     c = data['hub_page']['scope']
-    return f'<section class="sec stone wrap" id="granicy"><div class="grid"><div class="c4 rv"><h2 class="h2">{c["title"]}</h2></div><div class="c7 c7r rv"><p class="txt" style="max-width:60ch;font-size:clamp(17px,1.4vw,22px);line-height:1.45;color:var(--ink)">{esc(c["text"])}</p></div></div></section>'
+    paras = ''.join('<p class="txt scope-p">' + esc(x) + '</p>' for x in c['paras'])
+    return f'<section class="sec stone wrap" id="granicy"><div class="grid"><div class="c4 rv"><h2 class="h2">{c["title"]}</h2></div><div class="c7 c7r rv">{paras}</div></div></section>'
 
 def diag_block(page_slug):
     """Диагност: четыре вопроса, карточка с рекомендацией, форма с ответами."""
