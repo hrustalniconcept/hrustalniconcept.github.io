@@ -2,7 +2,7 @@
 """Генератор раздела «Услуги». Читает content/services.json, content/cases.json, content/config.json,
 собирает uslugi/index.html, uslugi/<slug>/index.html, sitemap.xml, robots.txt и CONTENT-TODO.md.
 Запуск: python3 tools/build.py"""
-import json, os, re, html, datetime, glob
+import json, os, re, html, datetime, glob, hashlib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 C = lambda *p: os.path.join(ROOT, 'content', *p)
 cfg = json.load(open(C('config.json')))
@@ -36,6 +36,16 @@ def plain(s):
 
 def is_todo(s): return bool(re.search(r'\[\[', str(s) or ''))
 
+def asset_v(rel):
+    """Короткая метка версии файла: браузер подтягивает новый CSS сразу после правки."""
+    try:
+        return hashlib.md5(open(os.path.join(ROOT, rel), 'rb').read()).hexdigest()[:8]
+    except OSError:
+        return ''
+
+CSS_V = asset_v('assets/css/site.css')
+JS_V = asset_v('assets/js/site.js')
+
 def idx(slug): return ORDER.index(slug) + 1 if slug in ORDER else 0
 
 def has_page(slug): return BY[slug].get('page', True)
@@ -59,7 +69,7 @@ def head(title, desc, canonical, og_image=None, ld=None, preload=None):
 <link rel="preload" href="/assets/fonts/BebasNeue-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/Inter-var-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 {pre}
-<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/site.css?v={CSS_V}">
 {('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>') if ld else ''}
 <script type="application/json" id="cfg">{json.dumps({"bitrix": {k: v for k, v in cfg["bitrix"].items() if not k.startswith("_")}, "metrika": {"counter": cfg["metrika"]["counter"]}, "services": {sl: {"title": BY[sl]["title"], "gen": BY[sl].get("gen", BY[sl]["title"]), "short": BY[sl]["short"], "price": BY[sl]["price"]["display"], "duration": plain(BY[sl]["duration"]), "deliverables": [plain(x) for x in BY[sl]["deliverables"][:3]], "url": url_of(sl)} for sl in ORDER + SIDE}}, ensure_ascii=False)}</script>
 </head>'''
@@ -89,7 +99,7 @@ def footer():
             f'<div><span class="lbl">Связь</span><a href="{c["telegram_manager"]}" rel="noopener">Telegram</a><a href="tel:{c["phone_tel"]}">{esc(c["phone_display"])}</a><a href="mailto:{c["email"]}">{esc(c["email"])}</a><a href="{c["telegram_channel"]}" rel="noopener">Telegram-канал</a></div>')
     return (f'<footer class="footer"><div class="ftop"><a class="logo" href="/">{LOGO}Хрустальный</a><p class="cap">{esc(site.get("footer_note", ""))}</p></div>'
             f'<div class="fcols">{cols}</div><div class="fbot"><span class="cap">{esc(c["legal"]["name"])} · ИНН {esc(c["legal"]["inn"])}</span><a class="cap" href="/politika/">Политика обработки данных</a><a class="cap" href="{cfg["site"]["home"]}">hrustalni.com</a></div></footer>'
-            f'<script src="/assets/js/site.js" defer></script>')
+            f'<script src="/assets/js/site.js?v={JS_V}" defer></script>')
 
 def crumbs(items, dark=False):
     li = ''.join(f'<li><a href="{h}">{esc(n)}</a></li>' if h else f'<li aria-current="page">{esc(n)}</li>' for n, h in items)
