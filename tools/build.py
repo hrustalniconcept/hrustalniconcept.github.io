@@ -112,7 +112,7 @@ def form_block(s, inner=False):
         <p class="msg" role="alert"></p><input type="hidden" name="diag" value="">
       </form>'''
     if inner: return '<span class="lbl" style="display:block;margin-bottom:22px">Заявка</span>' + formhtml
-    return (f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2><div class="rule"></div>'
+    return (f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2 form-h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2>'
             f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>'
             f'<div class="c6 c6r rv">{formhtml}</div></div></section>')
 
@@ -274,27 +274,30 @@ def service_page(s):
     if cs:
         c = cs[0]
         if slug not in c.get('primary', c['services'][:1]): TODOS.append((_ctx['page'], 'Кейс', f'Кейс именно по услуге «{s["title"]}». Пока показан смежный кейс «{c["title"]}»'))
+        lb = c.get('labels', {})
         row = lambda k, v: f'<div><dt>{k}</dt><dd>{t(v)}</dd></div>'
-        case_html = (f'<div class="case rv"><div class="fig"><b>{esc(c["figure"])}</b><p class="cap">{esc(c["figure_caption"])}</p><p class="cap" style="margin-top:18px">{esc(c["meta"])}</p></div>'
-                     f'<div><h3 class="h3" style="margin-bottom:18px">{esc(c["title"])}</h3><dl>{row("Ситуация", c["situation"])}{row("Что нашли", c["found"])}{row("Что поменяли", c["changed"])}{row("Что изменилось", c["result"])}</dl></div></div>')
+        case_html = (f'<div class="case rv"><div class="fig"><b>{esc(c["figure"])}</b><p class="cap">{esc(c["figure_caption"])}</p></div>'
+                     f'<div><h3 class="h3" style="margin-bottom:18px">{esc(c["title"])}</h3><dl>{row("Ситуация", c["situation"])}{row("Что нашли", c["found"])}{row(lb.get("changed", "Что поменяли"), c["changed"])}{row(lb.get("result", "Что изменилось"), c["result"])}</dl></div></div>')
     else:
         case_html = f'<p class="txt rv">{t(ref if is_todo(ref) else "[[ЗАПОЛНИТЬ: кейс по услуге «" + s["title"] + "»]]")}</p>'
     review = s.get('review')
     review_html = (f'<blockquote class="quote rv"><p>{esc(review["text"])}</p><footer class="cap">{esc(review["name"])}, {esc(review["role"])}, {esc(review["project"])}</footer></blockquote>' if review and not is_todo(review.get('text', '')) else '')
     if not review_html: TODOS.append((_ctx['page'], 'Кейс, отзыв', f'Отзыв клиента по услуге «{s["title"]}»: имя, должность, проект, 2-4 предложения. Пока блок не выводится'))
-    case = f'<section class="sec wrap" id="keis"><div class="head"><h2 class="h2 rv">Кейс <em>по этой работе</em></h2><p class="txt rv">Клиентские проекты не называем, собственные называем прямо.</p></div>{case_html}{review_html}</section>'
+    case_lead = esc(cs[0]['meta']) if cs else 'Клиентские проекты не называем, собственные называем прямо.'
+    case = f'<section class="sec wrap" id="keis"><div class="head"><h2 class="h2 rv">{s.get("case_title", "Кейс <em>по этой работе</em>")}</h2><p class="txt rv">{case_lead}</p></div>{case_html}{review_html}</section>'
 
     # 6. подробнее о работе
     _ctx['block'] = 'Подробнее о работе'
     rl = ''.join(f'<li><b>{i+1:02d}</b><p>{t(x)}</p></li>' for i, x in enumerate(s['results']))
-    st = ''.join(f'<li><span class="lbl">{t(x["term"])}</span><h3 class="h3">{esc(x["name"])}</h3><p>{t(x["out"])}</p></li>' for x in s['stages'])
+    st = ''.join(f'<li><span class="lbl">{t(x["term"])}</span>' + (f'<h3 class="h3">{esc(x["name"])}</h3>' if x.get('name') else '') + f'<p>{t(x["out"])}</p></li>' for x in s['stages'])
     ni = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_included']); np_ = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_promised'])
     fq = ''.join(f'<details><summary>{esc(q["q"])}<i></i></summary><div class="a">{t(q["a"])}</div></details>' for q in s['faq'])
-    more = (f'<section class="sec stone wrap" id="podrobnee"><div class="head"><h2 class="h2 rv">Подробнее <em>о работе</em></h2><p class="txt rv">Этапы, границы и вопросы с первых звонков. Для тех, кто принимает решение.</p></div>'
+    faq_block = (f'<details class="dsec rv" id="voprosy"><summary><span class="word">Вопросы</span><i></i></summary><div class="faq">{fq}</div></details>' if fq else '')
+    more = (f'<section class="sec stone wrap" id="podrobnee"><div class="head"><h2 class="h2 rv">Подробнее <em>о работе</em></h2><p class="txt rv">{esc(s.get("more_lead", "Этапы, границы и вопросы с первых звонков. Для тех, кто принимает решение."))}</p></div>'
             f'<details class="dsec rv"><summary><span class="word">Что сможете решить по итогам</span><i></i></summary><ol class="res n{len(s["results"])}">{rl}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Как устроена работа</span><i></i></summary><ol class="steps" style="--n:{len(s["stages"])}">{st}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Что не входит и чего не обещаем</span><i></i></summary><div class="two"><div><ul class="list x">{ni}</ul></div><div><ul class="list x">{np_}</ul></div></div></details>'
-            f'<details class="dsec rv" id="voprosy"><summary><span class="word">Вопросы</span><i></i></summary><div class="faq">{fq}</div></details></section>')
+            f'{faq_block}</section>')
 
     # 7. форма и другие услуги
     _ctx['block'] = 'Первый шаг'

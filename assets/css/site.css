@@ -23,8 +23,8 @@ button{font:inherit;color:inherit}
 /* типографика */
 .h1{font:400 clamp(52px,11vw,150px)/.88 var(--head);letter-spacing:-.01em;text-transform:uppercase;text-wrap:balance}
 .h2{font:400 clamp(36px,5.5vw,80px)/.95 var(--head);letter-spacing:-.005em;text-transform:uppercase;text-wrap:balance;max-width:16ch}
-.h1 em,.h2 em{font-style:normal;background:linear-gradient(var(--navy),var(--navy)) no-repeat 0 0/100% .87em;color:#fff;padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-.dark .h2 em{background:#fff;color:var(--navy)}
+.h1 em,.h2 em{font-style:normal;background:linear-gradient(var(--navy),var(--navy)) no-repeat 0 0/100% .87em;color:#fff;padding:.02em .12em 0;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.dark .h2 em{background:linear-gradient(#fff,#fff) no-repeat 0 0/100% .87em;color:var(--navy)}
 .h3{font:400 clamp(22px,1.9vw,28px)/1 var(--head);text-transform:uppercase;letter-spacing:.01em}
 .word{font:400 clamp(28px,3.2vw,44px)/1 var(--head);text-transform:uppercase;letter-spacing:.01em}
 .lbl{font:500 11px/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--taupe)}
@@ -32,6 +32,7 @@ button{font:inherit;color:inherit}
 .txt{font:400 clamp(15px,1.1vw,17px)/1.55 var(--sans);color:var(--ink72);max-width:52ch}
 .txt+.txt{margin-top:1em}
 .rule{width:40px;height:1px;background:currentColor;opacity:.4;margin:20px 0 16px}
+.form-h2{font:400 clamp(24px,2.3vw,34px)/1.05 var(--head);max-width:none;margin-bottom:18px}
 .num{font:400 clamp(30px,3vw,40px)/1 var(--head);color:var(--taupe)}
 .big{font:400 clamp(44px,6vw,96px)/1 var(--head);letter-spacing:-.01em}
 
