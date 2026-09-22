@@ -203,23 +203,26 @@ def service_page(s):
         faq_ld]}
     s.setdefault('hero_cta_h2', 'Расскажите <em>о проекте</em>')
     s.setdefault('first_step_text', 'Ответим в ближайший рабочий день и скажем, с чего имеет смысл начинать.')
-    report = cfg['report_example']['url']
-    report_link = (f'<a class="arrow" href="{report}" data-goal="report_example" target="_blank" rel="noopener">Посмотреть пример отчёта <i>↗</i></a>' if report
-                   else '<a class="arrow" href="#zayavka" data-goal="report_example">Прислать пример отчёта <i>↓</i></a>')
-    if not report: TODOS.append((_ctx['page'], 'Обложка, кнопка «Посмотреть пример отчёта»', 'Обезличенный пример отчёта в PDF, 4-6 страниц. Пока файла нет, кнопка ведёт на форму'))
-
     # 1. обложка
     photo = (f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{srcset}" sizes="100vw" width="2400" height="1409" alt="{esc(img["alt"])}" fetchpriority="high" decoding="async">'
              f'<figcaption class="cap">{esc(img.get("caption", ""))}</figcaption></figure>' if has_img else '<div class="photo empty rv" role="img" aria-label="Место для фотографии"></div>')
     if not has_img: TODOS.append((_ctx['page'], 'Обложка', f'Фотография на обложку услуги «{s["title"]}»'))
     _ctx['block'] = 'Обложка'
     f2 = s.get('fact2', {})
+    fact2 = f'<div><b>{esc(f2["b"])}</b><span class="cap">{t(f2["cap"])}</span></div>' if f2 else ''
     hero = (f'<section class="hero wrap">{crumbs([("Главная", "/"), ("Услуги", "/uslugi/"), (s["title"], None)])}'
             f'<div class="meta"><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>'
             f'<h1 class="h1">{s.get("h1", esc(s["title"]))}</h1><p class="lead">{t(s.get("result_line") or s["promise"])}</p>'
-            f'<div class="facts"><div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>'
-            f'<div><b>{esc(f2.get("b", ""))}</b><span class="cap">{t(f2.get("cap", s["price"]["note"]))}</span></div></div>'
-            f'<div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a>{report_link}</div>{photo}</section>')
+            f'<div class="facts"><div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>{fact2}</div>'
+            f'<div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a></div>{photo}</section>')
+
+    _ctx['block'] = 'Вводный блок'
+    intro = ''
+    if s.get('intro'):
+        ip = ''.join('<p class="txt scope-p">' + esc(x) + '</p>' for x in s['intro']['paras'])
+        intro = (f'<section class="sec stone wrap" id="chto-beryom"><div class="grid">'
+                 f'<div class="c4 rv"><h2 class="h2">{s["intro"]["title"]}</h2></div>'
+                 f'<div class="c7 c7r rv">{ip}</div></div></section>')
 
     # 2. кому подходит
     _ctx['block'] = 'Кому подходит'
@@ -242,7 +245,7 @@ def service_page(s):
     fcap = esc(s['artifact_image'].get('caption', '')) if frame_img else ''
     out = (f'<section class="sec dark wrap" id="na-vyhode"><div class="grid">'
            f'<div class="c7 rv"><span class="lbl">Что получаете на выходе</span><h2 class="h2" style="margin-top:14px">Что окажется <em>у вас в руках</em></h2><div class="rule"></div><div style="margin-top:28px">{dl_html}</div></div>'
-           f'<div class="c4 c4r rv" style="align-self:end"><div class="frame{" has" if frame_img else ""}">{frame_img}<span class="cap">{fcap}</span></div><p class="cap" style="margin-top:14px">{report_link}</p></div></div></section>')
+           f'<div class="c4 c4r rv" style="align-self:end"><div class="frame{" has" if frame_img else ""}">{frame_img}<span class="cap">{fcap}</span></div></div></div></section>')
 
     # 4. стоимость
     _ctx['block'] = 'Стоимость'
@@ -292,7 +295,7 @@ def service_page(s):
     _ctx['block'] = 'Другие услуги'
     oth = f'<section class="sec wrap" id="uslugi"><div class="head"><h2 class="h2 rv">{data["ladder"]["others_title"]}</h2><p class="txt rv">{t(data["ladder"]["others_lead"])}</p></div><div class="rv">{others(cur=slug)}</div></section>'
 
-    body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{hero}{who}{out}{price}{case}{more}{form}{oth}</main>{footer()}</body></html>'
+    body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{hero}{intro}{who}{out}{price}{case}{more}{form}{oth}</main>{footer()}</body></html>'
     pre = {"src": f'{base}_m.webp', "srcset": srcset} if has_img else None
     return head(seo_title, seo_desc, url, og, ld, pre) + body
 

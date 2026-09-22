@@ -8,7 +8,11 @@
     "lang": "ru"
   },
   "contacts": {
-    "manager": { "name": "Анна", "role": "работа с проектами", "telegram": "https://t.me/annaHrustalni" },
+    "manager": {
+      "name": "Анна",
+      "role": "работа с проектами",
+      "telegram": "https://t.me/annaHrustalni"
+    },
     "channel": "https://t.me/HrustalniDevelopment",
     "email": "[[ЗАПОЛНИТЬ: почта бюро для заявок]]"
   },
@@ -21,10 +25,6 @@
   "metrika": {
     "_comment": "Номер счётчика Яндекс.Метрики. Пока пусто, счётчик не подключается, цели не отправляются.",
     "counter": ""
-  },
-  "report_example": {
-    "_comment": "Обезличенный пример отчёта, PDF на 4-6 страниц. Пока файла нет, кнопка ведёт на форму с пометкой «прислать пример».",
-    "url": ""
   },
   "policy_url": "",
   "facts": {
