@@ -75,37 +75,21 @@
 
   /* ---- диагност: четыре вопроса → рекомендация → ответы в заявку ---- */
   var diag = document.getElementById('diag');
-  if (diag && cfg.services) {
-    var res = document.getElementById('dres');
+  if (diag) {
     var lead = document.getElementById('leadForm');
     var pick = function (name) { var el = diag.querySelector('input[name="dq_' + name + '"]:checked'); return el ? el.value : ''; };
     var picks = function (name) { return [].map.call(diag.querySelectorAll('input[name="dq_' + name + '"]:checked'), function (e) { return e.value; }); };
     var label = function (name, v) { var el = diag.querySelector('input[name="dq_' + name + '"][value="' + v + '"]'); return el ? el.nextElementSibling.textContent : v; };
-    var decide = function (stage, pain, houses) {
-      if (pain === 'bank') return 'finansovaya-model';
-      if (stage === 'land') return 'best-use';
-      if (stage === 'sales') return 'audit-proekta';
-      if (stage === 'concept') return pain === 'what' ? 'best-use' : (pain === 'econ' || pain === 'notsell') ? 'audit-proekta' : 'koncepciya';
-      if (stage === 'build') return pain === 'scale' ? 'koncepciya' : 'audit-proekta';
-      return pain === 'scale' ? 'koncepciya' : pain === 'what' ? 'best-use' : '';
-    };
+    /* Ответы не превращаются в рекомендацию: они уходят в заявку как есть. */
     var render = function () {
-      var stage = pick('stage'), pain = pick('pain'), houses = pick('houses');
-      var slug = decide(stage, pain, houses);
-      if (!slug || !stage || !pain) { res.hidden = true; return; }
-      var sv = cfg.services[slug]; if (!sv) return;
-      res.querySelector('.rt').textContent = diag.dataset.prefix + ' ' + sv.gen;
-      res.querySelector('.rs').textContent = sv.short + '. ' + sv.duration.charAt(0).toUpperCase() + sv.duration.slice(1) + ', ' + sv.price + '.';
-      res.querySelector('.rd').innerHTML = sv.deliverables.map(function (x) { return '<li><i>·</i><p>' + x + '</p></li>'; }).join('');
-      var note = res.querySelector('.rn'); var small = houses === '10' || houses === '0';
-      note.hidden = !(small && slug !== 'finansovaya-model'); if (!note.hidden) note.textContent = diag.dataset.note;
-      var link = res.querySelector('.rl'); link.href = sv.url; link.innerHTML = 'Подробнее: ' + sv.title + ' <i>→</i>';
-      res.hidden = false;
-      if (lead) {
-        lead.dataset.serviceTitle = sv.title;
-        lead.elements.diag.value = ['Стадия: ' + label('stage', stage), 'Мешает: ' + label('pain', pain), houses ? 'Домов в год: ' + label('houses', houses) : '', 'На руках: ' + (picks('docs').map(function (v) { return label('docs', v); }).join(', ') || 'не указано'), 'Рекомендация: ' + sv.title].filter(Boolean).join('\n');
-      }
-      goal('diag_result', { service: slug });
+      if (!lead || !lead.elements.diag) return;
+      var stage = pick('stage'), pain = pick('pain'), houses = pick('houses'), docs = picks('docs');
+      lead.elements.diag.value = [
+        stage ? 'Стадия: ' + label('stage', stage) : '',
+        pain ? 'Мешает: ' + label('pain', pain) : '',
+        houses ? 'Домов в год: ' + label('houses', houses) : '',
+        docs.length ? 'На руках: ' + docs.map(function (v) { return label('docs', v); }).join(', ') : ''
+      ].filter(Boolean).join('\n');
     };
     diag.addEventListener('change', render);
   }

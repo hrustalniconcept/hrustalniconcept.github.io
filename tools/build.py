@@ -87,7 +87,7 @@ def footer():
     cols = (f'<div><span class="lbl">Бюро</span><a href="/o-byuro/">О бюро</a><a href="/portfolio/">Портфолио</a><a href="/uslugi/">Услуги</a><a href="/obuchenie/">Обучение</a><a href="/kontakty/">Контакты</a></div>'
             f'<div><span class="lbl">Услуги</span>' + ''.join(f'<a href="{url_of(sl)}">{esc(BY[sl]["title"])}</a>' for sl in ORDER + SIDE) + '</div>'
             f'<div><span class="lbl">Связь</span><a href="{c["telegram_manager"]}" rel="noopener">Telegram</a><a href="tel:{c["phone_tel"]}">{esc(c["phone_display"])}</a><a href="mailto:{c["email"]}">{esc(c["email"])}</a><a href="{c["telegram_channel"]}" rel="noopener">Telegram-канал</a></div>')
-    return (f'<footer class="footer"><div class="ftop"><a class="logo" href="/">{LOGO}Хрустальный</a><p class="cap">Концепт-бюро группы «Хрустальный». {esc(cfg["facts"]["years"])}, {esc(cfg["facts"]["settlements"])}, {esc(cfg["facts"]["residents"])}. Иркутск, работаем по всей России.</p></div>'
+    return (f'<footer class="footer"><div class="ftop"><a class="logo" href="/">{LOGO}Хрустальный</a><p class="cap">{esc(site.get("footer_note", ""))}</p></div>'
             f'<div class="fcols">{cols}</div><div class="fbot"><span class="cap">{esc(c["legal"]["name"])} · ИНН {esc(c["legal"]["inn"])}</span><a class="cap" href="/politika/">Политика обработки данных</a><a class="cap" href="{cfg["site"]["home"]}">hrustalni.com</a></div></footer>'
             f'<script src="/assets/js/site.js" defer></script>')
 
@@ -166,7 +166,7 @@ def doors_block():
 def scope_block():
     _ctx['block'] = 'Границы работы'
     c = data['hub_page']['scope']
-    return f'<section class="sec stone wrap" id="granicy"><div class="grid"><div class="c4 rv"><span class="lbl">{esc(c["lbl"])}</span></div><div class="c7 c7r rv"><p class="txt" style="max-width:60ch;font-size:clamp(17px,1.4vw,22px);line-height:1.45;color:var(--ink)">{esc(c["text"])}</p></div></div></section>'
+    return f'<section class="sec stone wrap" id="granicy"><div class="grid"><div class="c4 rv"><h2 class="h2">{c["title"]}</h2></div><div class="c7 c7r rv"><p class="txt" style="max-width:60ch;font-size:clamp(17px,1.4vw,22px);line-height:1.45;color:var(--ink)">{esc(c["text"])}</p></div></div></section>'
 
 def diag_block(page_slug):
     """Диагност: четыре вопроса, карточка с рекомендацией, форма с ответами."""
@@ -180,8 +180,7 @@ def diag_block(page_slug):
     form = form_block({'slug': page_slug, 'title': 'Заявка после диагноста', 'hero_cta_h2': '', 'first_step_text': '', 'cta': 'Прислать информацию об участке'}, inner=True)
     return (f'<section class="sec dark wrap" id="zayavka"><div class="grid">'
             f'<div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2" style="margin-top:14px">{dg["title"]}</h2><div class="rule"></div><p class="txt">{esc(dg["lead"])}</p>'
-            f'<div class="diag" id="diag" data-prefix="{esc(dg["result_prefix"])}" data-note="{esc(dg["note_small"])}">{qs}</div>'
-            f'<div class="dres" id="dres" hidden><span class="lbl">Рекомендация</span><h3 class="h3 rt"></h3><p class="txt rs"></p><ul class="list rd"></ul><p class="cap rn" hidden></p><a class="arrow rl" href="#">Подробнее <i>→</i></a></div></div>'
+            f'<div class="diag" id="diag">{qs}</div></div>'
             f'<div class="c6 c6r rv">{form}</div></div></section>')
 
 # ---------- страница услуги ----------
@@ -351,7 +350,7 @@ def hub_page():
             f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}'
             f'<h1 class="h1">С чем к нам <em>обращаются клиенты</em></h1>'
             f'<div class="lead"><p>{esc(h["lead_intro"])}</p><ul class="bul">{"".join(f"<li>{esc(x)}</li>" for x in h["lead_stages"])}</ul><p>{esc(h["lead_outro"])}</p></div></section>'
-            f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div><p class="txt side rv" style="margin-top:28px;max-width:70ch">{h["doors_side"]}</p></section>{scope_block()}{portfolio_block(per_cat=1)}{diag_block("hub")}</main>{footer()}</body></html>')
+            f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div></section>{scope_block()}{portfolio_block(per_cat=1)}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
 # ---------- главная ----------
@@ -440,7 +439,7 @@ def contacts_page():
             f'<div class="rv"><span class="lbl">Офис</span><p class="big-link" style="cursor:default">{esc(c["city"])}</p><p class="cap">{t(c["address"])}</p></div>'
             f'</div><div class="rv" style="margin-top:48px"><span class="lbl" style="display:block;margin-bottom:12px">Где читать и смотреть</span><div class="soc">{soc}</div></div></section>'
             f'{generic_form("contacts", "Заявка со страницы контактов", "Пришлите <em>информацию</em> об участке", "Кадастровый номер, схема, стадия и задача своими словами. Ответим в ближайший рабочий день и скажем, с чего имеет смысл начинать.", "Прислать информацию об участке")}'
-            f'<section class="sec wrap" id="rekvizity"><span class="lbl">Реквизиты</span><p class="cap" style="margin-top:12px">{esc(c["legal"]["name"])} · ИНН {esc(c["legal"]["inn"])}. {t(c["legal"]["inn_note"])}</p></section>'
+            f'<section class="sec wrap" id="rekvizity"><span class="lbl">Реквизиты</span><p class="cap" style="margin-top:12px">{esc(c["legal"]["name"])} · ИНН {esc(c["legal"]["inn"])}{(". " + t(c["legal"]["inn_note"])) if c["legal"].get("inn_note") else ""}</p></section>'
             f'</main>{footer()}</body></html>')
     return head(title, desc, url, None, ld) + body
 
