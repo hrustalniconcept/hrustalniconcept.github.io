@@ -287,8 +287,15 @@ def service_page(s):
         if slug not in c.get('primary', c['services'][:1]): TODOS.append((_ctx['page'], 'Кейс', f'Кейс именно по услуге «{s["title"]}». Пока показан смежный кейс «{c["title"]}»'))
         lb = c.get('labels', {})
         row = lambda k, v: f'<div><dt>{k}</dt><dd>{t(v)}</dd></div>'
+        # строки кейса: произвольный набор из данных или прежние четыре
+        if c.get('rows'):
+            case_rows = ''.join(row(x['label'], x['text']) for x in c['rows'])
+        else:
+            case_rows = (row('Ситуация', c['situation']) + row('Что нашли', c['found'])
+                         + row(lb.get('changed', 'Что поменяли'), c['changed'])
+                         + row(lb.get('result', 'Что изменилось'), c['result']))
         case_html = (f'<div class="case rv"><div class="fig"><b>{esc(c["figure"])}</b><p class="cap">{esc(c["figure_caption"])}</p></div>'
-                     f'<div><h3 class="h3" style="margin-bottom:18px">{esc(c["title"])}</h3><dl>{row("Ситуация", c["situation"])}{row("Что нашли", c["found"])}{row(lb.get("changed", "Что поменяли"), c["changed"])}{row(lb.get("result", "Что изменилось"), c["result"])}</dl></div></div>')
+                     f'<div><h3 class="h3" style="margin-bottom:18px">{esc(c["title"])}</h3><dl>{case_rows}</dl></div></div>')
     else:
         case_html = f'<p class="txt rv">{t(ref if is_todo(ref) else "[[ЗАПОЛНИТЬ: кейс по услуге «" + s["title"] + "»]]")}</p>'
     review = s.get('review')
