@@ -258,7 +258,7 @@ def service_page(s):
     else:
         aside = f'<div class="frame{" has" if frame_img else ""}">{frame_img}<span class="cap">{fcap}</span></div>'
     out = (f'<section class="sec dark wrap" id="na-vyhode"><div class="grid">'
-           f'<div class="c7 rv"><span class="lbl">{esc(s.get("out_lbl", "Что получаете на выходе"))}</span><h2 class="h2" style="margin-top:14px">{s.get("out_title", "Что окажется <em>у вас в руках</em>")}</h2><div class="rule"></div><div style="margin-top:28px">{dl_html}</div></div>'
+           f'<div class="c7 rv"><span class="lbl">{esc(s.get("out_lbl", "Что получаете на выходе"))}</span><h2 class="h2" style="margin-top:14px">{s.get("out_title", "Что окажется <em>у вас в руках</em>")}</h2><div style="margin-top:28px">{dl_html}</div></div>'
            f'<div class="c4 c4r rv{" out-cta" if s.get("out_cta") and not frame_img else ""}" style="align-self:{"start" if s.get("out_cta") and not frame_img else "end"}">{aside}</div></div></section>')
 
     # 4. стоимость
@@ -268,12 +268,13 @@ def service_page(s):
     scale = f'<p class="txt" style="margin-top:18px">{t(s["price"]["scale_argument"])}</p>' if s['price'].get('scale_argument') else ''
     nxt = ('' if s['price'].get('no_next') else
            (f' Следующий шаг: {BY[ORDER[n]]["title"]}, {BY[ORDER[n]]["price"]["display"]}.' if 0 < n < len(ORDER) else ''))
+    pay_html = (f'<p class="txt" style="margin-top:14px"><span class="lbl" style="display:block;margin-bottom:6px">Оплата</span>{t(s["payment"])}</p>' if s.get('payment') else '')
     pnote = t(s['price']['note']); pnote = pnote if pnote.rstrip().endswith(('.', '!', '?')) else pnote + '.'
     moves_lbl = '<span class="lbl" style="display:block;margin-bottom:8px">Что двигает цену</span>' if moves_html else ''
     price = (f'<section class="sec stone wrap price" id="stoimost"><div class="grid">'
              f'<div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span><b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["price"].get("caption") or s["duration"])}</span>'
              f'<p class="txt" style="margin-top:22px">{pnote}{esc(nxt)}</p>{scale}'
-             f'<p class="txt" style="margin-top:14px"><span class="lbl" style="display:block;margin-bottom:6px">Оплата</span>{t(s["payment"])}</p></div>'
+             f'{pay_html}</div>'
              f'<div class="c6 c6r rv">{moves_lbl}{moves_html}<p class="txt" style="margin-top:22px">{t(s.get("price_long", ""))}</p>'
              f'<div class="actions" style="margin-top:28px"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a></div></div></div></section>')
 
