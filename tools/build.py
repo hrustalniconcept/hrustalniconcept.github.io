@@ -21,6 +21,47 @@ LOGO = '<svg viewBox="0 0 69 69" aria-hidden="true"><path d="M52.1687 68.9595L34
 
 def esc(s): return html.escape(str(s), quote=True)
 
+# ---------- мягкие переносы ----------
+SHY = '\u00ad'
+_V = 'аеёиоуыэюя'
+_C = 'бвгджзклмнпрстфхцчшщ'
+_M = 'йъь'
+_HY_RULES = [re.compile(p, re.I) for p in (
+    f'([{_M}])([{_V}{_C}])',
+    f'([{_V}])([{_V}])',
+    f'([{_V}][{_C}])([{_C}][{_V}])',
+    f'([{_C}][{_V}])([{_C}][{_V}])',
+    f'([{_V}][{_C}])([{_C}][{_C}][{_V}])',
+    f'([{_C}][{_V}])([{_C}][{_C}][{_V}])',
+)]
+_WORD = re.compile(r'[А-Яа-яЁё]{7,}')
+
+def _hy_word(m):
+    """Расставляет мягкие переносы по правилам русского языка: минимум две буквы с каждой стороны."""
+    w = m.group(0)
+    for rule in _HY_RULES:
+        for _ in range(2):
+            w = rule.sub(r'\1' + SHY + r'\2', w)
+    parts = w.split(SHY)
+    out = [parts[0]]
+    for part in parts[1:]:
+        if len(out[-1].replace(SHY, '')) >= 2 and len(part) >= 2:
+            out.append(SHY + part)
+        else:
+            out[-1] += part
+    w = ''.join(out)
+    # последняя часть короче двух букв: перенос убираем
+    while w.endswith(SHY) or (SHY in w and len(w.rsplit(SHY, 1)[1]) < 2):
+        w = w.rsplit(SHY, 1)
+        w = w[0] + (w[1] if len(w) > 1 else '')
+    return w
+
+def hy(s):
+    """Мягкие переносы в тексте: выключка по формату не рвёт строку большими пробелами."""
+    return _WORD.sub(_hy_word, s)
+
+def hyesc(s): return hy(esc(s))
+
 def t(s, block=None):
     """Экранирует текст и превращает [[ЗАПОЛНИТЬ: ...]] в видимую заглушку, регистрируя её в CONTENT-TODO."""
     if block: _ctx['block'] = block
@@ -28,7 +69,7 @@ def t(s, block=None):
     def rep(m):
         TODOS.append((_ctx['page'], _ctx['block'], m.group(1).strip()))
         return f'<span class="todo">{m.group(1).strip()}</span>'
-    return re.sub(r'\[\[\s*(.*?)\s*\]\]', rep, s, flags=re.S)
+    return hy(re.sub(r'\[\[\s*(.*?)\s*\]\]', rep, s, flags=re.S))
 
 def plain(s):
     """Текст для meta и JSON-LD: заглушки убираются."""
@@ -132,7 +173,7 @@ def ladder(cur=None, dark=False):
     for i, slug in enumerate(ORDER):
         s = BY[slug]; n = f'{i+1:02d}'
         cls = ' '.join(filter(None, ['cur' if slug == cur else '', 'flag' if s.get('flagship') else '']))
-        sub = f'<small class="term">{t(s["duration"])}</small><small>{esc(s["ladder_text"])}</small>' if s.get('ladder_text') else f'<small>{t(s["duration"])}</small>'
+        sub = f'<small class="term">{t(s["duration"])}</small><small>{hyesc(s["ladder_text"])}</small>' if s.get('ladder_text') else f'<small>{t(s["duration"])}</small>'
         note = s.get('ladder_note') or s['price'].get('note', '')
         pricenote = f'<small>{t(note)}</small>' if s.get('ladder_result') and note else ''
         href = f'/uslugi/{slug}/'
@@ -142,7 +183,7 @@ def ladder(cur=None, dark=False):
             rows.append('<li class="off"><span>↓ Аудит засчитывается в стоимость концепции</span></li>')
     for slug in SIDE:
         s = BY[slug]
-        sub = f'<small class="term">{t(s["duration"])}</small><small>{esc(s.get("ladder_text") or s["short"])}</small>'
+        sub = f'<small class="term">{t(s["duration"])}</small><small>{hyesc(s.get("ladder_text") or s["short"])}</small>'
         note = s.get('ladder_note') or s['price'].get('note', '')
         act = 'Вы здесь' if slug == cur else ('Подробнее <i>→</i>' if has_page(slug) else 'Обсудить <i>↓</i>')
         inner = f'<span class="n">·</span><span class="t"><b class="tt">{esc(s["title"])}</b>{sub}</span><span class="d">{t(s.get("ladder_result", ""))}</span><span class="p">{esc(s["price"]["display"])}<small>{t(note)}</small></span><span class="a">{act}</span>'
@@ -169,14 +210,14 @@ def doors_block():
     cards = ''
     for x in h['doors']:
         cards += (f'<a class="door rv" href="/uslugi/{x["service"]}/"><span class="num">{x["n"]}</span>'
-                  f'<h3 class="h3">{esc(x["q"])}</h3><p class="txt">{esc(x["a"])}</p>'
+                  f'<h3 class="h3">{esc(x["q"])}</h3><p class="txt">{hyesc(x["a"])}</p>'
                   f'<span class="meta cap">{esc(x["meta"])}</span><span class="arrow">{esc(x["label"])} <i>→</i></span></a>')
     return f'<section class="sec wrap" id="s-chego-nachat"><div class="doors">{cards}</div><p class="txt side rv">{h["doors_side"]}</p></section>'
 
 def scope_block():
     _ctx['block'] = 'Границы работы'
     c = data['hub_page']['scope']
-    paras = ''.join('<p class="txt scope-p">' + esc(x) + '</p>' for x in c['paras'])
+    paras = ''.join('<p class="txt scope-p">' + hyesc(x) + '</p>' for x in c['paras'])
     return f'<section class="sec stone wrap" id="granicy"><div class="grid"><div class="c4 rv"><h2 class="h2">{c["title"]}</h2></div><div class="c7 c7r rv">{paras}</div></div></section>'
 
 def diag_block(page_slug):
@@ -229,7 +270,7 @@ def service_page(s):
     _ctx['block'] = 'Вводный блок'
     intro = ''
     if s.get('intro'):
-        ip = ''.join('<p class="txt scope-p">' + esc(x) + '</p>' for x in s['intro']['paras'])
+        ip = ''.join('<p class="txt scope-p">' + hyesc(x) + '</p>' for x in s['intro']['paras'])
         intro = (f'<section class="sec stone wrap" id="chto-beryom"><div class="grid">'
                  f'<div class="c4 rv"><h2 class="h2">{s["intro"]["title"]}</h2></div>'
                  f'<div class="c7 c7r rv">{ip}</div></div></section>')
@@ -301,7 +342,7 @@ def service_page(s):
     review = s.get('review')
     review_html = (f'<blockquote class="quote rv"><p>{esc(review["text"])}</p><footer class="cap">{esc(review["name"])}, {esc(review["role"])}, {esc(review["project"])}</footer></blockquote>' if review and not is_todo(review.get('text', '')) else '')
     if not review_html: TODOS.append((_ctx['page'], 'Кейс, отзыв', f'Отзыв клиента по услуге «{s["title"]}»: имя, должность, проект, 2-4 предложения. Пока блок не выводится'))
-    case_lead = esc(cs[0]['meta']) if cs else 'Клиентские проекты не называем, собственные называем прямо.'
+    case_lead = hyesc(cs[0]['meta']) if cs else 'Клиентские проекты не называем, собственные называем прямо.'
     case = f'<section class="sec wrap" id="keis"><div class="head"><h2 class="h2 rv">{s.get("case_title", "Кейс <em>по этой работе</em>")}</h2><p class="txt rv">{case_lead}</p></div>{case_html}{review_html}</section>'
 
     # 6. подробнее о работе
@@ -311,7 +352,7 @@ def service_page(s):
     ni = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_included']); np_ = ''.join(f'<li><i>×</i><p>{t(x)}</p></li>' for x in s['not_promised'])
     fq = ''.join(f'<details><summary>{esc(q["q"])}<i></i></summary><div class="a">{t(q["a"])}</div></details>' for q in s['faq'])
     faq_block = (f'<details class="dsec rv" id="voprosy"><summary><span class="word">Вопросы</span><i></i></summary><div class="faq">{fq}</div></details>' if fq else '')
-    more = (f'<section class="sec stone wrap" id="podrobnee"><div class="head"><h2 class="h2 rv">Подробнее <em>о работе</em></h2><p class="txt rv">{esc(s.get("more_lead", "Этапы, границы и вопросы с первых звонков. Для тех, кто принимает решение."))}</p></div>'
+    more = (f'<section class="sec stone wrap" id="podrobnee"><div class="head"><h2 class="h2 rv">Подробнее <em>о работе</em></h2><p class="txt rv">{hyesc(s.get("more_lead", "Этапы, границы и вопросы с первых звонков. Для тех, кто принимает решение."))}</p></div>'
             f'<details class="dsec rv"><summary><span class="word">Что сможете решить по итогам</span><i></i></summary><ol class="res n{len(s["results"])}">{rl}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Как устроена работа</span><i></i></summary><ol class="steps" style="--n:{len(s["stages"])}">{st}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Что не входит и чего не обещаем</span><i></i></summary><div class="two"><div><ul class="list x">{ni}</ul></div><div><ul class="list x">{np_}</ul></div></div></details>'
@@ -381,7 +422,7 @@ def hub_page():
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
             f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}'
             f'<h1 class="h1">С чем к нам <em>обращаются клиенты</em></h1>'
-            f'<div class="lead"><p>{esc(h["lead_intro"])}</p><ul class="bul">{"".join(f"<li>{esc(x)}</li>" for x in h["lead_stages"])}</ul><p>{esc(h["lead_outro"])}</p></div></section>'
+            f'<div class="lead"><p>{hyesc(h["lead_intro"])}</p><ul class="bul">{"".join(f"<li>{esc(x)}</li>" for x in h["lead_stages"])}</ul><p>{hyesc(h["lead_outro"])}</p></div></section>'
             f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div></section>{scope_block()}{portfolio_block(per_cat=1)}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
