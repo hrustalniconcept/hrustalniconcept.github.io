@@ -146,7 +146,7 @@ def crumbs(items, dark=False):
     li = ''.join(f'<li><a href="{h}">{esc(n)}</a></li>' if h else f'<li aria-current="page">{esc(n)}</li>' for n, h in items)
     return f'<nav aria-label="Вы здесь"><ol class="crumbs">{li}</ol></nav>'
 
-B24_BTN = f"b24-web-form-popup-btn-{cfg['bitrix']['form']['id']}" if cfg['bitrix'].get('form') else ''
+B24_BTN = f"b24-web-form-popup-btn-{cfg['bitrix']['form']['id']}" if cfg['bitrix'].get('form', {}).get('type', 'click') == 'click' else ''
 
 def form_block(s, inner=False):
     """Блок «Первый шаг»: одна форма, поля по ТЗ, без капчи. Подтверждение говорит, что будет дальше."""
@@ -166,12 +166,17 @@ def form_block(s, inner=False):
       </form>'''
     b24 = cfg['bitrix'].get('form')
     if b24:
-        # форма Битрикс24 «по клику»: загрузчик с портала открывает её поверх страницы по кнопке с классом b24-web-form-popup-btn-<id>.
+        # форма Битрикс24. inline: загрузчик рисует форму на месте своего тега script;
+        # click: открывает её поверх страницы по кнопке с классом b24-web-form-popup-btn-<id>.
         # Своя форма сайта при этом не выводится: без вебхука она заявки не доставляет
-        formhtml = (f'<div class="b24box"><p class="txt">Нажмите кнопку: откроется короткая форма заявки. Ответим в ближайший рабочий день.</p>'
-                    f'<div class="actions" style="margin-top:22px"><button class="btn {B24_BTN}" type="button" data-goal="form_open">{esc(s["cta"])} <i>→</i></button></div>'
-                    f'<p class="cap" style="margin-top:14px">Отправляя заявку, вы соглашаетесь с {pol}. Без рассылок: один звонок или сообщение по делу.</p></div>'
-                    f'<script data-b24-form="click/{b24["id"]}/{b24["code"]}" data-skip-moving="true">(function(w,d,u){{var s=d.createElement(\'script\');s.async=true;s.src=u+\'?\'+(Date.now()/180000|0);var h=d.getElementsByTagName(\'script\')[0];h.parentNode.insertBefore(s,h);}})(window,document,\'{cfg["bitrix"]["portal"]}/upload/crm/form/loader_{b24["id"]}_{b24["code"]}.js\');</script>')
+        typ = b24.get('type', 'click')
+        loader = (f'<script data-b24-form="{typ}/{b24["id"]}/{b24["code"]}" data-skip-moving="true">(function(w,d,u){{var s=d.createElement(\'script\');s.async=true;s.src=u+\'?\'+(Date.now()/180000|0);var h=d.getElementsByTagName(\'script\')[0];h.parentNode.insertBefore(s,h);}})(window,document,\'{cfg["bitrix"]["portal"]}/upload/crm/form/loader_{b24["id"]}_{b24["code"]}.js\');</script>')
+        if typ == 'inline':
+            formhtml = f'<div class="b24box">{loader}</div><p class="cap" style="margin-top:14px">Отправляя заявку, вы соглашаетесь с {pol}. Без рассылок: один звонок или сообщение по делу.</p>'
+        else:
+            formhtml = (f'<div class="b24box"><p class="txt">Нажмите кнопку: откроется короткая форма заявки. Ответим в ближайший рабочий день.</p>'
+                        f'<div class="actions" style="margin-top:22px"><button class="btn {B24_BTN}" type="button" data-goal="form_open">{esc(s["cta"])} <i>→</i></button></div>'
+                        f'<p class="cap" style="margin-top:14px">Отправляя заявку, вы соглашаетесь с {pol}. Без рассылок: один звонок или сообщение по делу.</p></div>{loader}')
     if inner: return '<span class="lbl" style="display:block;margin-bottom:22px">Заявка</span>' + formhtml
     return (f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2 form-h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2>'
             f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>'
