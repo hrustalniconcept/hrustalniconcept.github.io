@@ -254,7 +254,7 @@ def service_page(s):
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Service", "name": s['title'], "description": seo_desc, "url": url, "serviceType": "Консалтинг в загородном девелопменте", "areaServed": "RU",
          "provider": {"@type": "Organization", "name": cfg['site']['name'], "url": cfg['site']['home']},
-         "offers": {"@type": "Offer", "price": s['price']['value'], "priceCurrency": "RUB", "description": '; '.join(f"{x['display']}, {x['duration']}: {x['cond'].lower()}" for x in s['price']['tiers']) if s['price'].get('tiers') else s['price']['display'] + ', ' + plain(s['duration'])}},
+         "offers": {"@type": "Offer", "price": s['price']['value'], "priceCurrency": "RUB", "description": '; '.join(f"{x['display']}" + (f", {x['duration']}" if x.get('duration') else '') + f": {x['cond'].lower()}" for x in s['price']['tiers']) if s['price'].get('tiers') else s['price']['display'] + ', ' + plain(s['duration'])}},
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": SITE + '/uslugi/'}, {"@type": "ListItem", "position": 3, "name": s['title'], "item": url}]},
         faq_ld]}
     # вопросы в разметке только там, где они видны на странице
@@ -270,7 +270,8 @@ def service_page(s):
     f2 = s.get('fact2', {})
     fact2 = f'<div><b>{esc(f2["b"])}</b><span class="cap">{t(f2["cap"])}</span></div>' if f2 else ''
     tiers = s['price'].get('tiers')
-    facts = (''.join(f'<div class="tier"><b>{esc(x["display"])}</b><span class="cap">{t(x["duration"])}. {t(x["cond"])}</span></div>' for x in tiers) if tiers
+    hero_tiers = tiers if s['price'].get('tiers_hero', True) else None
+    facts = (''.join(f'<div class="tier"><b>{esc(x["display"])}</b><span class="cap">{t(x["duration"])}. {t(x["cond"])}</span></div>' for x in hero_tiers) if hero_tiers
              else f'<div><b>{esc(s["price"].get("big") or s["price"]["display"])}</b><span class="cap">{t(s["price"].get("caption") or s["duration"])}</span></div>{fact2}')
     hero_meta = f'<div class="meta"><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>' if s.get('hero_meta', True) else ''
     hero_text = f'<p class="txt hero-txt">{t(s["hero_text"])}</p>' if s.get('hero_text') else ''
@@ -326,7 +327,8 @@ def service_page(s):
     pnote = t(s['price']['note']); pnote = pnote if pnote.rstrip().endswith(('.', '!', '?')) else pnote + '.'
     moves_lbl = f'<span class="lbl" style="display:block;margin-bottom:8px">{esc(s["price"].get("moves_title", "Что двигает цену"))}</span>' if moves_html else ''
     if tiers:
-        big = '<div class="tiers">' + ''.join(f'<div class="tier"><b class="big">{esc(x["display"])}</b><span class="dur">{t(x["duration"])}</span><span class="cap">{t(x["cond"])}</span></div>' for x in tiers) + '</div>'
+        dur = lambda x: f'<span class="dur">{t(x["duration"])}</span>' if x.get('duration') else ''
+        big = '<div class="tiers">' + ''.join(f'<div class="tier"><b class="big">{esc(x["display"])}</b>{dur(x)}<span class="cap">{t(x["cond"])}</span></div>' for x in tiers) + '</div>'
     else:
         big = f'<b class="big" style="margin-top:14px">{esc(s["price"].get("big") or s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["price"].get("caption") or s["duration"])}</span>'
     price = (f'<section class="sec stone wrap price" id="stoimost"><div class="grid">'
