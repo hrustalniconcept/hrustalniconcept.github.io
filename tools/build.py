@@ -316,7 +316,7 @@ def service_page(s):
            (f' Следующий шаг: {BY[ORDER[n]]["title"]}, {BY[ORDER[n]]["price"]["display"]}.' if 0 < n < len(ORDER) else ''))
     pay_html = (f'<p class="txt" style="margin-top:14px"><span class="lbl" style="display:block;margin-bottom:6px">Оплата</span>{t(s["payment"])}</p>' if s.get('payment') else '')
     pnote = t(s['price']['note']); pnote = pnote if pnote.rstrip().endswith(('.', '!', '?')) else pnote + '.'
-    moves_lbl = '<span class="lbl" style="display:block;margin-bottom:8px">Что двигает цену</span>' if moves_html else ''
+    moves_lbl = f'<span class="lbl" style="display:block;margin-bottom:8px">{esc(s["price"].get("moves_title", "Что двигает цену"))}</span>' if moves_html else ''
     if tiers:
         big = '<div class="tiers">' + ''.join(f'<div class="tier"><b class="big">{esc(x["display"])}</b><span class="dur">{t(x["duration"])}</span><span class="cap">{t(x["cond"])}</span></div>' for x in tiers) + '</div>'
     else:
