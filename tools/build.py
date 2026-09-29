@@ -591,7 +591,7 @@ def event_page(ev):
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "BusinessEvent", "name": "Бизнес-завтрак для загородных застройщиков, Екатеринбург", "description": plain(ev['seo']['description']),
          "eventStatus": "https://schema.org/EventScheduled", "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode", "startDate": "2026-10-02T10:00+05:00", "endDate": "2026-10-02T12:00+05:00",
-         "location": {"@type": "Place", "name": "Центр Екатеринбурга, адрес сообщается участникам", "address": {"@type": "PostalAddress", "addressLocality": "Екатеринбург", "addressCountry": "RU"}},
+         "location": {"@type": "Place", "name": ev['place']['name'], "hasMap": ev['place']['map'], "address": {"@type": "PostalAddress", "streetAddress": ev['place']['address'], "addressLocality": ev['place']['city'], "addressCountry": "RU"}},
          "organizer": {"@type": "Organization", "name": cfg['site']['name'], "url": SITE + '/'}, "isAccessibleForFree": True, "maximumAttendeeCapacity": 12, "url": url, "image": f'{SITE}{hb}_og.jpg',
          "performer": [{"@type": "Person", "name": h['name']} for h in ev['hosts']]},
         {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q['q'], "acceptedAnswer": {"@type": "Answer", "text": q['a']}} for q in ev['faq']]},
@@ -602,7 +602,8 @@ def event_page(ev):
     topics = ''.join(f'<li class="rv"><span class="num">0{i+1}</span><div><h3 class="h3">{esc(x["t"])}</h3><p class="txt" style="margin-top:10px">{esc(x["d"])}</p></div></li>' for i, x in enumerate(ev['topics']))
     points = ''.join(f'<li><i>·</i><p>{esc(x)}</p></li>' for x in ev['about_points'])
     hosts = ''.join(f'<div class="rv"><h3 class="h3">{esc(h["name"])}</h3><p class="cap" style="margin:6px 0 12px">{esc(h["role"])}</p><p class="txt">{esc(h["d"])}</p></div>' for h in ev['hosts'])
-    terms = ''.join(f'<li class="rv"><span class="lbl">{esc(x["t"])}</span><h3 class="h3" style="margin:10px 0 8px;font-size:22px">{esc(x["d"].split(".")[0])}</h3><p>{esc(".".join(x["d"].split(".")[1:]).strip())}</p></li>' for x in ev['terms'])
+    maplink = lambda x: f' <a href="{x["link"]}" target="_blank" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">{esc(x["link_text"])}</a>' if x.get('link') else ''
+    terms = ''.join(f'<li class="rv"><span class="lbl">{esc(x["t"])}</span><h3 class="h3" style="margin:10px 0 8px;font-size:22px">{esc(x["d"].split(".")[0])}</h3><p>{esc(".".join(x["d"].split(".")[1:]).strip())}{maplink(x)}</p></li>' for x in ev['terms'])
     fq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{esc(q["q"])}<i></i></summary><div class="a">{esc(q["a"])}</div></details>' for i, q in enumerate(ev['faq']))
     interest = ''.join(f'<label class="opt"><input type="radio" name="interest" value="{v}"{" checked" if i == 0 else ""}><span>{esc(l)}</span></label>' for i, (v, l) in enumerate(f['interest']))
     tg = cfg['contacts']['manager']['telegram']
