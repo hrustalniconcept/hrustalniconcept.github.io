@@ -264,7 +264,8 @@ def service_page(s):
     # 1. обложка
     photo = (f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{srcset}" sizes="100vw" width="2400" height="1409" alt="{esc(img["alt"])}" fetchpriority="high" decoding="async">'
              f'<figcaption class="cap">{esc(img.get("caption", ""))}</figcaption></figure>' if has_img else '<div class="photo empty rv" role="img" aria-label="Место для фотографии"></div>')
-    if not has_img: TODOS.append((_ctx['page'], 'Обложка', f'Фотография на обложку услуги «{s["title"]}»'))
+    if s.get('no_photo'): photo = ''  # страница без фото на обложке
+    elif not has_img: TODOS.append((_ctx['page'], 'Обложка', f'Фотография на обложку услуги «{s["title"]}»'))
     _ctx['block'] = 'Обложка'
     f2 = s.get('fact2', {})
     fact2 = f'<div><b>{esc(f2["b"])}</b><span class="cap">{t(f2["cap"])}</span></div>' if f2 else ''
@@ -273,7 +274,7 @@ def service_page(s):
              else f'<div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>{fact2}')
     hero_meta = f'<div class="meta"><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>' if s.get('hero_meta', True) else ''
     hero_text = f'<p class="txt hero-txt">{t(s["hero_text"])}</p>' if s.get('hero_text') else ''
-    hero = (f'<section class="hero wrap">{crumbs([("Главная", "/"), ("Услуги", "/uslugi/"), (s["title"], None)])}'
+    hero = (f'<section class="hero wrap{" no-photo" if not photo else ""}">{crumbs([("Главная", "/"), ("Услуги", "/uslugi/"), (s["title"], None)])}'
             f'{hero_meta}'
             f'<h1 class="h1">{s.get("h1", esc(s["title"]))}</h1><p class="lead">{t(s.get("result_line") or s["promise"])}</p>'
             f'<div class="facts">{facts}</div>{hero_text}'
