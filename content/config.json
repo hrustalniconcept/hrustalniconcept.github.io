@@ -20,8 +20,8 @@
     "_comment": "Входящий вебхук Битрикс24 с правами только на CRM (crm.lead.add). Пока пусто, форма работает в тестовом режиме и пишет заявку в консоль браузера.",
     "portal": "https://bitrix.hrustalni.ru",
     "form": {
-      "id": "128",
-      "code": "6xd0e1",
+      "id": "134",
+      "code": "3lrsvz",
       "type": "inline"
     },
     "webhook": "",
