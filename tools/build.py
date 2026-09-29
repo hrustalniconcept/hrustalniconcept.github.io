@@ -257,6 +257,8 @@ def service_page(s):
          "offers": {"@type": "Offer", "price": s['price']['value'], "priceCurrency": "RUB", "description": '; '.join(f"{x['display']}, {x['duration']}: {x['cond'].lower()}" for x in s['price']['tiers']) if s['price'].get('tiers') else s['price']['display'] + ', ' + plain(s['duration'])}},
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": SITE + '/uslugi/'}, {"@type": "ListItem", "position": 3, "name": s['title'], "item": url}]},
         faq_ld]}
+    # вопросы в разметке только там, где они видны на странице
+    if not faq_ld['mainEntity'] or 'more' not in s.get('blocks', ['more']): ld['@graph'].remove(faq_ld)
     s.setdefault('hero_cta_h2', 'Расскажите <em>о проекте</em>')
     s.setdefault('first_step_text', 'Ответим в ближайший рабочий день и скажем, с чего имеет смысл начинать.')
     # 1. обложка
@@ -378,7 +380,10 @@ def service_page(s):
     _ctx['block'] = 'Другие услуги'
     oth = f'<section class="sec wrap" id="uslugi"><div class="head"><h2 class="h2 rv">{data["ladder"]["others_title"]}</h2><p class="txt rv">{t(data["ladder"]["others_lead"])}</p></div><div class="rv">{others(cur=slug)}</div></section>'
 
-    body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{hero}{intro}{who}{out}{price}{case}{more}{form}{oth}</main>{footer()}</body></html>'
+    # короткая страница: услуга может перечислить блоки в поле blocks, остальные не выводятся
+    parts = {'hero': hero, 'intro': intro, 'who': who, 'out': out, 'price': price, 'case': case, 'more': more, 'form': form, 'others': oth}
+    main = ''.join(parts[b] for b in s.get('blocks', list(parts)))
+    body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{main}</main>{footer()}</body></html>'
     pre = {"src": f'{base}_m.webp', "srcset": srcset} if has_img else None
     return head(seo_title, seo_desc, url, og, ld, pre) + body
 
