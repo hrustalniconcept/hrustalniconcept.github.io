@@ -383,6 +383,7 @@ p.side a{text-decoration:underline;text-underline-offset:4px}
 .dsec summary i:after{transform:rotate(90deg);transition:transform .3s}
 .dsec[open] summary i:after{transform:rotate(0)}
 .dsec>*:not(summary){padding-bottom:36px}
+.dsec .faq details:last-child{border-bottom:0}
 .moredl summary{list-style:none;cursor:pointer;margin:18px 0 0;color:var(--w70)}
 .moredl summary::-webkit-details-marker{display:none}
 .moredl[open] summary{display:none}
