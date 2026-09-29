@@ -271,7 +271,7 @@ def service_page(s):
     fact2 = f'<div><b>{esc(f2["b"])}</b><span class="cap">{t(f2["cap"])}</span></div>' if f2 else ''
     tiers = s['price'].get('tiers')
     facts = (''.join(f'<div class="tier"><b>{esc(x["display"])}</b><span class="cap">{t(x["duration"])}. {t(x["cond"])}</span></div>' for x in tiers) if tiers
-             else f'<div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>{fact2}')
+             else f'<div><b>{esc(s["price"].get("big") or s["price"]["display"])}</b><span class="cap">{t(s["price"].get("caption") or s["duration"])}</span></div>{fact2}')
     hero_meta = f'<div class="meta"><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>' if s.get('hero_meta', True) else ''
     hero_text = f'<p class="txt hero-txt">{t(s["hero_text"])}</p>' if s.get('hero_text') else ''
     hero = (f'<section class="hero wrap{" no-photo" if not photo else ""}">{crumbs([("Главная", "/"), ("Услуги", "/uslugi/"), (s["title"], None)])}'
@@ -328,7 +328,7 @@ def service_page(s):
     if tiers:
         big = '<div class="tiers">' + ''.join(f'<div class="tier"><b class="big">{esc(x["display"])}</b><span class="dur">{t(x["duration"])}</span><span class="cap">{t(x["cond"])}</span></div>' for x in tiers) + '</div>'
     else:
-        big = f'<b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["price"].get("caption") or s["duration"])}</span>'
+        big = f'<b class="big" style="margin-top:14px">{esc(s["price"].get("big") or s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["price"].get("caption") or s["duration"])}</span>'
     price = (f'<section class="sec stone wrap price" id="stoimost"><div class="grid">'
              f'<div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span>{big}'
              f'<p class="txt" style="margin-top:22px">{pnote}{esc(nxt)}</p>{scale}'
@@ -370,7 +370,7 @@ def service_page(s):
     fq = ''.join(f'<details><summary>{esc(q["q"])}<i></i></summary><div class="a">{t(q["a"])}</div></details>' for q in s['faq'])
     faq_block = (f'<details class="dsec rv" id="voprosy"><summary><span class="word">Вопросы</span><i></i></summary><div class="faq">{fq}</div></details>' if fq else '')
     more = (f'<section class="sec stone wrap" id="podrobnee"><div class="head"><h2 class="h2 rv">Подробнее <em>о работе</em></h2><p class="txt rv">{hyesc(s.get("more_lead", "Этапы, границы и вопросы с первых звонков. Для тех, кто принимает решение."))}</p></div>'
-            f'<details class="dsec rv"><summary><span class="word">Что сможете решить по итогам</span><i></i></summary><ol class="res n{len(s["results"])}">{rl}</ol></details>'
+            f'<details class="dsec rv"><summary><span class="word">{esc(s.get("results_title", "Что сможете решить по итогам"))}</span><i></i></summary><ol class="res n{len(s["results"])}">{rl}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Как устроена работа</span><i></i></summary><ol class="steps" style="--n:{len(s["stages"])}">{st}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Что не входит и чего не обещаем</span><i></i></summary><div class="two"><div><ul class="list x">{ni}</ul></div><div><ul class="list x">{np_}</ul></div></div></details>'
             f'{faq_block}</section>')
