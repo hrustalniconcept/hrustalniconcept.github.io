@@ -146,6 +146,8 @@ def crumbs(items, dark=False):
     li = ''.join(f'<li><a href="{h}">{esc(n)}</a></li>' if h else f'<li aria-current="page">{esc(n)}</li>' for n, h in items)
     return f'<nav aria-label="Вы здесь"><ol class="crumbs">{li}</ol></nav>'
 
+B24_BTN = f"b24-web-form-popup-btn-{cfg['bitrix']['form']['id']}" if cfg['bitrix'].get('form') else ''
+
 def form_block(s, inner=False):
     """Блок «Первый шаг»: одна форма, поля по ТЗ, без капчи. Подтверждение говорит, что будет дальше."""
     tg = cfg['contacts']['manager']['telegram']
@@ -162,14 +164,17 @@ def form_block(s, inner=False):
         <div class="foot"><button class="btn" type="submit"><span>{esc(s["cta"])}</span><i>→</i></button><p class="cap">Нажимая кнопку, вы соглашаетесь с {pol}. Без рассылок: один звонок или сообщение по делу.</p></div>
         <p class="msg" role="alert"></p><input type="hidden" name="diag" value="">
       </form>'''
+    b24 = cfg['bitrix'].get('form')
+    if b24:
+        # форма Битрикс24 «по клику»: загрузчик с портала открывает её поверх страницы по кнопке с классом b24-web-form-popup-btn-<id>.
+        # Своя форма сайта при этом не выводится: без вебхука она заявки не доставляет
+        formhtml = (f'<div class="b24box"><p class="txt">Нажмите кнопку: откроется короткая форма заявки. Ответим в ближайший рабочий день.</p>'
+                    f'<div class="actions" style="margin-top:22px"><button class="btn {B24_BTN}" type="button" data-goal="form_open">{esc(s["cta"])} <i>→</i></button></div>'
+                    f'<p class="cap" style="margin-top:14px">Отправляя заявку, вы соглашаетесь с {pol}. Без рассылок: один звонок или сообщение по делу.</p></div>'
+                    f'<script data-b24-form="click/{b24["id"]}/{b24["code"]}" data-skip-moving="true">(function(w,d,u){{var s=d.createElement(\'script\');s.async=true;s.src=u+\'?\'+(Date.now()/180000|0);var h=d.getElementsByTagName(\'script\')[0];h.parentNode.insertBefore(s,h);}})(window,document,\'{cfg["bitrix"]["portal"]}/upload/crm/form/loader_{b24["id"]}_{b24["code"]}.js\');</script>')
     if inner: return '<span class="lbl" style="display:block;margin-bottom:22px">Заявка</span>' + formhtml
-    # форма Битрикс24 «по клику»: загрузчик с портала открывает её поверх страницы по кнопке с классом b24-web-form-popup-btn-<id>
-    b24 = s.get('b24_form')
-    b24_html = (f'<div class="actions" style="margin-top:22px"><button class="btn b24-web-form-popup-btn-{b24["id"]}" type="button" data-goal="b24_form_open">{esc(b24["label"])} <i>→</i></button></div>'
-                f'<script data-b24-form="click/{b24["id"]}/{b24["code"]}" data-skip-moving="true">(function(w,d,u){{var s=d.createElement(\'script\');s.async=true;s.src=u+\'?\'+(Date.now()/180000|0);var h=d.getElementsByTagName(\'script\')[0];h.parentNode.insertBefore(s,h);}})(window,document,\'{cfg["bitrix"]["portal"]}/upload/crm/form/loader_{b24["id"]}_{b24["code"]}.js\');</script>'
-                if b24 else '')
     return (f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2 form-h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2>'
-            f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p>{b24_html}</div>'
+            f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>'
             f'<div class="c6 c6r rv">{formhtml}</div></div></section>')
 
 def ladder(cur=None, dark=False):
@@ -627,6 +632,8 @@ def event_page(ev):
 
 # ---------- сборка ----------
 def write(path, content):
+    # на страницах с формой Битрикс24 кнопки заявки сразу открывают её
+    if B24_BTN and 'data-b24-form=' in content: content = content.replace('<a class="btn" href="#zayavka"', f'<a class="btn {B24_BTN}" href="#zayavka"')
     full = os.path.join(ROOT, path); os.makedirs(os.path.dirname(full), exist_ok=True)
     open(full, 'w', encoding='utf-8').write(content); print('  ', path, len(content)//1024, 'KB')
 
