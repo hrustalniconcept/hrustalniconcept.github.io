@@ -284,8 +284,8 @@ def service_page(s):
     _ctx['block'] = 'Кому подходит'
     li = lambda items, mark: ''.join(f'<li><i>{mark}</i><p>{t(x)}</p></li>' for x in items)
     who = (f'<section class="sec wrap" id="komu"><div class="head"><h2 class="h2 rv">Кому подходит <em>и кому нет</em></h2><p class="txt rv">{t(s.get("who_intro", ""))}</p></div>'
-           f'<div class="two"><div class="rv"><div class="word">Подходит</div><ul class="list">{li(s["for_whom"], "+")}</ul></div>'
-           f'<div class="rv"><div class="word">Не подходит</div><ul class="list x">{li(s["not_for_whom"], "×")}</ul></div></div></section>')
+           f'<div class="two fit rv"><div class="word w1">Подходит</div><div class="word w2">Не подходит</div>'
+           f'<ul class="list l1">{li(s["for_whom"], "+")}</ul><ul class="list x l2">{li(s["not_for_whom"], "×")}</ul></div></section>')
 
     # 3. что получаете: пять на виду
     _ctx['block'] = 'Что получаете на выходе'
