@@ -163,8 +163,13 @@ def form_block(s, inner=False):
         <p class="msg" role="alert"></p><input type="hidden" name="diag" value="">
       </form>'''
     if inner: return '<span class="lbl" style="display:block;margin-bottom:22px">Заявка</span>' + formhtml
+    # форма Битрикс24 «по клику»: загрузчик с портала открывает её поверх страницы по кнопке с классом b24-web-form-popup-btn-<id>
+    b24 = s.get('b24_form')
+    b24_html = (f'<div class="actions" style="margin-top:22px"><button class="btn b24-web-form-popup-btn-{b24["id"]}" type="button" data-goal="b24_form_open">{esc(b24["label"])} <i>→</i></button></div>'
+                f'<script data-b24-form="click/{b24["id"]}/{b24["code"]}" data-skip-moving="true">(function(w,d,u){{var s=d.createElement(\'script\');s.async=true;s.src=u+\'?\'+(Date.now()/180000|0);var h=d.getElementsByTagName(\'script\')[0];h.parentNode.insertBefore(s,h);}})(window,document,\'{cfg["bitrix"]["portal"]}/upload/crm/form/loader_{b24["id"]}_{b24["code"]}.js\');</script>'
+                if b24 else '')
     return (f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2 form-h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2>'
-            f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>'
+            f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p>{b24_html}</div>'
             f'<div class="c6 c6r rv">{formhtml}</div></div></section>')
 
 def ladder(cur=None, dark=False):
