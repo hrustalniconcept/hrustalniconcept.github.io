@@ -249,7 +249,7 @@ def service_page(s):
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Service", "name": s['title'], "description": seo_desc, "url": url, "serviceType": "Консалтинг в загородном девелопменте", "areaServed": "RU",
          "provider": {"@type": "Organization", "name": cfg['site']['name'], "url": cfg['site']['home']},
-         "offers": {"@type": "Offer", "price": s['price']['value'], "priceCurrency": "RUB", "description": s['price']['display'] + ', ' + plain(s['duration'])}},
+         "offers": {"@type": "Offer", "price": s['price']['value'], "priceCurrency": "RUB", "description": '; '.join(f"{x['display']}, {x['duration']}: {x['cond'].lower()}" for x in s['price']['tiers']) if s['price'].get('tiers') else s['price']['display'] + ', ' + plain(s['duration'])}},
         {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Главная", "item": SITE + '/'}, {"@type": "ListItem", "position": 2, "name": "Услуги", "item": SITE + '/uslugi/'}, {"@type": "ListItem", "position": 3, "name": s['title'], "item": url}]},
         faq_ld]}
     s.setdefault('hero_cta_h2', 'Расскажите <em>о проекте</em>')
@@ -261,10 +261,15 @@ def service_page(s):
     _ctx['block'] = 'Обложка'
     f2 = s.get('fact2', {})
     fact2 = f'<div><b>{esc(f2["b"])}</b><span class="cap">{t(f2["cap"])}</span></div>' if f2 else ''
+    tiers = s['price'].get('tiers')
+    facts = (''.join(f'<div class="tier"><b>{esc(x["display"])}</b><span class="cap">{t(x["duration"])}. {t(x["cond"])}</span></div>' for x in tiers) if tiers
+             else f'<div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>{fact2}')
+    hero_meta = f'<div class="meta"><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>' if s.get('hero_meta', True) else ''
+    hero_text = f'<p class="txt hero-txt">{t(s["hero_text"])}</p>' if s.get('hero_text') else ''
     hero = (f'<section class="hero wrap">{crumbs([("Главная", "/"), ("Услуги", "/uslugi/"), (s["title"], None)])}'
-            f'<div class="meta"><span class="lbl">{t(s["duration"])}</span><span class="lbl">{esc(s["price"]["display"])}</span></div>'
+            f'{hero_meta}'
             f'<h1 class="h1">{s.get("h1", esc(s["title"]))}</h1><p class="lead">{t(s.get("result_line") or s["promise"])}</p>'
-            f'<div class="facts"><div><b>{esc(s["price"]["display"])}</b><span class="cap">{t(s["duration"])}</span></div>{fact2}</div>'
+            f'<div class="facts">{facts}</div>{hero_text}'
             f'<div class="actions"><a class="btn" href="#zayavka" data-goal="cta_click">{esc(s["cta"])} <i>→</i></a></div>{photo}</section>')
 
     _ctx['block'] = 'Вводный блок'
@@ -312,8 +317,12 @@ def service_page(s):
     pay_html = (f'<p class="txt" style="margin-top:14px"><span class="lbl" style="display:block;margin-bottom:6px">Оплата</span>{t(s["payment"])}</p>' if s.get('payment') else '')
     pnote = t(s['price']['note']); pnote = pnote if pnote.rstrip().endswith(('.', '!', '?')) else pnote + '.'
     moves_lbl = '<span class="lbl" style="display:block;margin-bottom:8px">Что двигает цену</span>' if moves_html else ''
+    if tiers:
+        big = '<div class="tiers">' + ''.join(f'<div class="tier"><b class="big">{esc(x["display"])}</b><span class="dur">{t(x["duration"])}</span><span class="cap">{t(x["cond"])}</span></div>' for x in tiers) + '</div>'
+    else:
+        big = f'<b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["price"].get("caption") or s["duration"])}</span>'
     price = (f'<section class="sec stone wrap price" id="stoimost"><div class="grid">'
-             f'<div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span><b class="big" style="margin-top:14px">{esc(s["price"]["display"])}</b><span class="cap" style="display:block;margin-top:8px">{t(s["price"].get("caption") or s["duration"])}</span>'
+             f'<div class="c5 rv"><span class="lbl" style="display:block">Стоимость</span>{big}'
              f'<p class="txt" style="margin-top:22px">{pnote}{esc(nxt)}</p>{scale}'
              f'{pay_html}</div>'
              f'<div class="c6 c6r rv">{moves_lbl}{moves_html}<p class="txt" style="margin-top:22px">{t(s.get("price_long", ""))}</p>'
