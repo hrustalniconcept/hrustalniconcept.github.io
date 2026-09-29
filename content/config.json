@@ -21,7 +21,8 @@
     "portal": "https://bitrix.hrustalni.ru",
     "form": {
       "id": "128",
-      "code": "6xd0e1"
+      "code": "6xd0e1",
+      "type": "inline"
     },
     "webhook": "",
     "source_id": "WEB",
