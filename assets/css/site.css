@@ -148,7 +148,8 @@ body.menu-open{overflow:hidden}
 .deliv{list-style:none;padding:0;counter-reset:d;display:grid;gap:0}
 .deliv li{counter-increment:d;display:grid;grid-template-columns:64px 1fr;gap:16px;padding:22px 0;border-top:1px solid var(--wline);align-items:baseline}
 .deliv li:last-child{border-bottom:1px solid var(--wline)}
-.deliv li:before{content:"0" counter(d);font:400 32px/1 var(--head);color:var(--w55)}
+.moredl .deliv{counter-reset:d 5}
+.deliv li:before{content:counter(d,decimal-leading-zero);font:400 32px/1 var(--head);color:var(--w55)}
 .deliv li p{font-size:clamp(16px,1.25vw,19px);line-height:1.4;color:#fff;letter-spacing:-.01em}
 .deliv li small{display:block;margin-top:6px;color:var(--w55);font-size:13px}
 .frame{aspect-ratio:4/5;background:rgba(255,255,255,.06);border:1px solid var(--wline);display:grid;place-items:end start;padding:20px;position:relative;overflow:hidden}
