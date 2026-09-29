@@ -370,7 +370,7 @@ def service_page(s):
     fq = ''.join(f'<details><summary>{esc(q["q"])}<i></i></summary><div class="a">{t(q["a"])}</div></details>' for q in s['faq'])
     faq_block = (f'<details class="dsec rv" id="voprosy"><summary><span class="word">Вопросы</span><i></i></summary><div class="faq">{fq}</div></details>' if fq else '')
     more = (f'<section class="sec stone wrap" id="podrobnee"><div class="head"><h2 class="h2 rv">Подробнее <em>о работе</em></h2><p class="txt rv">{hyesc(s.get("more_lead", "Этапы, границы и вопросы с первых звонков. Для тех, кто принимает решение."))}</p></div>'
-            f'<details class="dsec rv"><summary><span class="word">Что сможете решить по итогам</span><i></i></summary><ol class="res n{len(s["results"])}">{rl}</ol></details>'
+            f'<details class="dsec rv"><summary><span class="word">{esc(s.get("results_title", "Что сможете решить по итогам"))}</span><i></i></summary><ol class="res n{len(s["results"])}">{rl}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Как устроена работа</span><i></i></summary><ol class="steps" style="--n:{len(s["stages"])}">{st}</ol></details>'
             f'<details class="dsec rv"><summary><span class="word">Что не входит и чего не обещаем</span><i></i></summary><div class="two"><div><ul class="list x">{ni}</ul></div><div><ul class="list x">{np_}</ul></div></div></details>'
             f'{faq_block}</section>')
