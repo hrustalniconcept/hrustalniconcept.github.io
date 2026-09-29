@@ -148,7 +148,7 @@ def crumbs(items, dark=False):
 
 B24_BTN = f"b24-web-form-popup-btn-{cfg['bitrix']['form']['id']}" if cfg['bitrix'].get('form', {}).get('type', 'click') == 'click' else ''
 
-def form_block(s, inner=False):
+def form_block(s, inner=False, label=True):
     """Блок «Первый шаг»: одна форма, поля по ТЗ, без капчи. Подтверждение говорит, что будет дальше."""
     tg = cfg['contacts']['manager']['telegram']
     success = (f'<div class="success"><h2 class="h2">Заявка получена. <em>Ответ</em> в ближайший рабочий день</h2><div class="rule"></div>'
@@ -177,7 +177,7 @@ def form_block(s, inner=False):
             formhtml = (f'<div class="b24box"><p class="txt">Нажмите кнопку: откроется короткая форма заявки. Ответим в ближайший рабочий день.</p>'
                         f'<div class="actions" style="margin-top:22px"><button class="btn {B24_BTN}" type="button" data-goal="form_open">{esc(s["cta"])} <i>→</i></button></div>'
                         f'<p class="cap" style="margin-top:14px">Отправляя заявку, вы соглашаетесь с {pol}. Без рассылок: один звонок или сообщение по делу.</p></div>{loader}')
-    if inner: return '<span class="lbl" style="display:block;margin-bottom:22px">Заявка</span>' + formhtml
+    if inner: return ('<span class="lbl" style="display:block;margin-bottom:22px">Заявка</span>' if label else '') + formhtml
     return (f'<section class="sec dark wrap" id="zayavka"><div class="grid"><div class="c5 rv"><span class="lbl">Первый шаг</span><h2 class="h2 form-h2" style="margin-top:14px">{s["hero_cta_h2"]}</h2>'
             f'<p class="txt">{t(s["first_step_text"], "Первый шаг")}</p><p class="cap" style="margin-top:18px">Если удобнее без формы: <a href="{tg}" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Telegram</a>.</p></div>'
             f'<div class="c6 c6r rv">{formhtml}</div></div></section>')
@@ -618,6 +618,7 @@ def event_page(ev):
             f'<div class="foot"><button class="btn" type="submit"><span>{esc(f["cta"])}</span><i>→</i></button><p class="cap">Нажимая кнопку, вы соглашаетесь с <a href="/politika/">политикой обработки данных</a>. Один звонок накануне встречи и адрес, без рассылок.</p></div>'
             f'<p class="msg" role="alert"></p><input type="hidden" name="diag" value=""></form>'
             f'<!-- Место для виджета GetCourse: вставить код виджета вместо формы выше -->')
+    if cfg['bitrix'].get('form'): form = form_block({'slug': slug, 'title': 'Бизнес-завтрак Екатеринбург', 'cta': f['cta']}, inner=True, label=False)
     body = (f'<body data-page="/{slug}/" data-service="{slug}">{nav()}<main>'
             f'<section class="hero wrap">{crumbs([("Главная", "/"), ("Бизнес-завтрак в Екатеринбурге", None)])}<div class="meta"><span class="lbl">{esc(ev["label"])}</span><span class="lbl">{esc(ev["date_prelim"])}</span></div>'
             f'<h1 class="h1">{ev["h1"]}</h1><p class="lead">{esc(ev["lead"])}</p><p class="cap" style="margin-top:14px;max-width:60ch">{esc(ev["date_note"])}</p>'
