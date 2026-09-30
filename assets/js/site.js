@@ -129,6 +129,21 @@
     if (price) { var pio = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { goal('price_view', { service: service }); pio.disconnect(); } }); }, { threshold: .3 }); pio.observe(price); }
   } else { document.querySelectorAll('.rv').forEach(function (el) { el.classList.add('in'); }); }
 
+  /* ---- лента картинок: сдвиг вбок пропорционально прокрутке ---- */
+  var slider = document.querySelector('.slider'), track = slider && slider.querySelector('.sl-track');
+  if (track && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var ticking = false;
+    var move = function () {
+      ticking = false;
+      var r = slider.getBoundingClientRect(), vh = window.innerHeight;
+      var p = Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
+      var max = Math.max(0, track.scrollWidth - slider.clientWidth);
+      track.style.transform = 'translate3d(' + (-p * max).toFixed(1) + 'px,0,0)';
+    };
+    var req = function () { if (!ticking) { ticking = true; requestAnimationFrame(move); } };
+    window.addEventListener('scroll', req, { passive: true }); window.addEventListener('resize', req); window.addEventListener('load', req); move();
+  }
+
   /* ---- клики: основная кнопка, пример отчёта, Telegram ---- */
   document.addEventListener('click', function (e) {
     var a = e.target.closest('a,button'); if (!a) return;

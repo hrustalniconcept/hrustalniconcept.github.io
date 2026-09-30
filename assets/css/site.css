@@ -497,3 +497,10 @@ body[data-page="/uslugi/"] .lead .bul li{text-align:left}
 body[data-page="/uslugi/"] .ladder .p small{text-align:left}
 }
 @media(min-width:900px) and (max-width:1199px){.ladder .a{font-size:0}.ladder .a i{font-size:18px}}
+
+/* лента картинок в хабе: едет вбок при прокрутке страницы */
+.slider{overflow:hidden;padding-block:clamp(24px,4vh,48px) clamp(40px,6vh,72px)}
+.sl-track{display:flex;gap:clamp(12px,1.6vw,24px);width:max-content;padding-inline:var(--m);will-change:transform}
+.sl{margin:0;height:clamp(300px,62vh,640px);flex:0 0 auto;overflow:hidden;background:var(--stone)}
+.sl img{height:100%;width:auto;display:block}
+@media(prefers-reduced-motion:reduce){.slider{overflow-x:auto}}
