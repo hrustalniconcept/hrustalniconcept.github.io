@@ -87,6 +87,21 @@ def asset_v(rel):
 CSS_V = asset_v('assets/css/site.css')
 JS_V = asset_v('assets/js/site.js')
 
+def webp_w(web_path, default):
+    """Ширина WebP-файла из заголовка, чтобы в srcset стояла настоящая ширина, а не условная."""
+    try:
+        d = open(os.path.join(ROOT, web_path.lstrip('/')), 'rb').read(30)
+        k = d[12:16]
+        if k == b'VP8 ': return int.from_bytes(d[26:28], 'little') & 0x3fff
+        if k == b'VP8L': return 1 + (((d[22] & 0x3F) << 8) | d[21])
+        if k == b'VP8X': return 1 + int.from_bytes(d[24:27], 'little')
+    except OSError:
+        pass
+    return default
+
+def srcset_of(base):
+    return f'{base}_s.webp 800w, {base}_m.webp {webp_w(base + "_m.webp", 1400)}w, {base}.webp {webp_w(base + ".webp", 2400)}w'
+
 def idx(slug): return ORDER.index(slug) + 1 if slug in ORDER else 0
 
 def has_page(slug): return BY[slug].get('page', True)
@@ -258,7 +273,7 @@ def service_page(s):
     seo_desc = plain(s['seo']['description']) or plain(s['promise'])
     img = s.get('image', {}); has_img = bool(img.get('src'))
     base = f'/assets/img/uslugi/{img["src"]}' if has_img else ''
-    srcset = f'{base}_s.webp 800w, {base}_m.webp 1400w, {base}.webp 2400w' if has_img else ''
+    srcset = srcset_of(base) if has_img else ''
     og = f'{SITE}{base}_og.jpg' if has_img else None
     faq_ld = {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q['q'], "acceptedAnswer": {"@type": "Answer", "text": plain(q['a'])}} for q in s['faq'] if not is_todo(q['a'])]}
     ld = {"@context": "https://schema.org", "@graph": [
@@ -440,7 +455,7 @@ def generic_form(slug, title, h2, text, cta):
 
 def hero_photo(src, alt, caption):
     base = f'/assets/img/uslugi/{src}'
-    return f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{base}_s.webp 800w, {base}_m.webp 1400w, {base}.webp 2400w" sizes="100vw" width="2400" height="1409" alt="{esc(alt)}" fetchpriority="high" decoding="async"><figcaption class="cap">{esc(caption)}</figcaption></figure>'
+    return f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{srcset_of(base)}" sizes="100vw" width="2400" height="1409" alt="{esc(alt)}" fetchpriority="high" decoding="async"><figcaption class="cap">{esc(caption)}</figcaption></figure>'
 
 def slider(slides):
     """Лента картинок, которая сдвигается вбок при прокрутке страницы. Без подписей."""
@@ -492,7 +507,7 @@ def scene_block():
     _ctx['block'] = 'Сцена'
     sc = site['home']['scene']; base = f'/assets/img/uslugi/{sc["photo"]}'
     lines = ''.join(f'<li class="rv">{esc(x)}</li>' for x in sc['lines'])
-    return (f'<section class="scene" id="my-sami"><div class="ph" data-parallax><img src="{base}_m.webp" srcset="{base}_s.webp 800w, {base}_m.webp 1400w, {base}.webp 2400w" sizes="100vw" alt="{esc(sc["alt"])}" loading="lazy" decoding="async"></div>'
+    return (f'<section class="scene" id="my-sami"><div class="ph" data-parallax><img src="{base}_m.webp" srcset="{srcset_of(base)}" sizes="100vw" alt="{esc(sc["alt"])}" loading="lazy" decoding="async"></div>'
             f'<div class="wrap in"><h2 class="giant rv">{esc(sc["word"])}</h2><ul class="lines">{lines}</ul><a class="arrow rv" href="{sc["link"]}">{esc(sc["cta"])} <i>→</i></a></div></section>')
 
 def awards_line():
