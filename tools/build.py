@@ -442,6 +442,16 @@ def hero_photo(src, alt, caption):
     base = f'/assets/img/uslugi/{src}'
     return f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{base}_s.webp 800w, {base}_m.webp 1400w, {base}.webp 2400w" sizes="100vw" width="2400" height="1409" alt="{esc(alt)}" fetchpriority="high" decoding="async"><figcaption class="cap">{esc(caption)}</figcaption></figure>'
 
+def slider(slides):
+    """Лента картинок, которая сдвигается вбок при прокрутке страницы. Без подписей."""
+    if not slides: return ''
+    items = ''
+    for x in slides:
+        b = f'/assets/img/uslugi/{x["src"]}'; ms = min(1400, x['w'])
+        items += (f'<figure class="sl"><img src="{b}_m.webp" srcset="{b}_s.webp 800w, {b}_m.webp {ms}w" sizes="(max-width:900px) 70vw, 45vw" '
+                  f'width="{x["w"]}" height="{x["h"]}" alt="{esc(x["alt"])}" loading="lazy" decoding="async"></figure>')
+    return f'<section class="slider" aria-label="Примеры визуализаций"><div class="sl-track">{items}</div></section>'
+
 # ---------- хаб ----------
 def hub_page():
     _ctx['page'] = '/uslugi/'; _ctx['block'] = 'Хаб'
@@ -454,7 +464,7 @@ def hub_page():
     body = (f'<body data-page="/uslugi/" data-service="hub">{nav()}<main>'
             f'<section class="hero wrap short">{crumbs([("Главная", "/"), ("Услуги", None)])}'
             f'<h1 class="h1">С чем к нам <em>обращаются клиенты</em></h1>'
-            f'<div class="lead"><p>{hyesc(h["lead_intro"])}</p><ul class="bul">{"".join(f"<li>{esc(x)}</li>" for x in h["lead_stages"])}</ul><p>{hyesc(h["lead_outro"])}</p></div></section>'
+            f'<div class="lead"><p>{hyesc(h["lead_intro"])}</p><ul class="bul">{"".join(f"<li>{esc(x)}</li>" for x in h["lead_stages"])}</ul><p>{hyesc(h["lead_outro"])}</p></div></section>{slider(h.get("slides", []))}'
             f'<section class="sec wrap" id="uslugi" style="padding-top:clamp(40px,6vh,72px)"><div class="rv">{ladder()}</div></section>{scope_block()}{portfolio_block(per_cat=1)}{diag_block("hub")}</main>{footer()}</body></html>')
     return head(title, desc, url, f'{SITE}/assets/img/uslugi/hub_aero_og.jpg', ld) + body
 
