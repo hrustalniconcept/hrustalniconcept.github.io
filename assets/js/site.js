@@ -130,7 +130,7 @@
   } else { document.querySelectorAll('.rv').forEach(function (el) { el.classList.add('in'); }); }
 
   /* ---- лента картинок: сдвиг вбок пропорционально прокрутке ---- */
-  var slider = document.querySelector('.slider'), track = slider && slider.querySelector('.sl-track');
+  var slider = document.querySelector('.slider:not(.click)'), track = slider && slider.querySelector('.sl-track');
   if (track && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     var ticking = false;
     var move = function () {
@@ -143,6 +143,21 @@
     var req = function () { if (!ticking) { ticking = true; requestAnimationFrame(move); } };
     window.addEventListener('scroll', req, { passive: true }); window.addEventListener('resize', req); window.addEventListener('load', req); move();
   }
+
+  /* ---- лента по клику: нажатие на картинку сдвигает ленту к следующей, после последней к первой ---- */
+  document.querySelectorAll('.slider.click').forEach(function (box) {
+    var tr = box.querySelector('.sl-track'), sl = tr.querySelectorAll('.sl'), i = 0, x = 0;
+    var go = function () {
+      var max = Math.max(0, tr.scrollWidth - box.clientWidth);
+      i = (x >= max - 1 || i >= sl.length - 1) ? 0 : i + 1;
+      x = Math.min(max, sl[i].offsetLeft - sl[0].offsetLeft);
+      tr.style.transform = 'translate3d(' + (-x) + 'px,0,0)';
+    };
+    sl.forEach(function (f) {
+      f.addEventListener('click', go);
+      f.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+  });
 
   /* ---- клики: основная кнопка, пример отчёта, Telegram ---- */
   document.addEventListener('click', function (e) {

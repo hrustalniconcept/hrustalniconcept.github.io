@@ -409,7 +409,7 @@ def service_page(s):
     oth = f'<section class="sec wrap" id="uslugi"><div class="head"><h2 class="h2 rv">{data["ladder"]["others_title"]}</h2><p class="txt rv">{t(data["ladder"]["others_lead"])}</p></div><div class="rv">{others(cur=slug)}</div></section>'
 
     # короткая страница: услуга может перечислить блоки в поле blocks, остальные не выводятся
-    parts = {'hero': hero, 'intro': intro, 'who': who, 'out': out, 'slider': slider(s.get('slides', [])), 'price': price, 'case': case, 'more': more, 'form': form, 'others': oth}
+    parts = {'hero': hero, 'intro': intro, 'who': who, 'out': out, 'slider': slider(s.get('slides', []), s.get('slides_mode', 'scroll')), 'price': price, 'case': case, 'more': more, 'form': form, 'others': oth}
     main = ''.join(parts[b] for b in s.get('blocks', list(parts)))
     body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{main}</main>{footer()}</body></html>'
     pre = {"src": f'{base}_m.webp', "srcset": srcset} if has_img else None
@@ -457,15 +457,17 @@ def hero_photo(src, alt, caption):
     base = f'/assets/img/uslugi/{src}'
     return f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{srcset_of(base)}" sizes="100vw" width="2400" height="1409" alt="{esc(alt)}" fetchpriority="high" decoding="async"><figcaption class="cap">{esc(caption)}</figcaption></figure>'
 
-def slider(slides):
-    """Лента картинок, которая сдвигается вбок при прокрутке страницы. Без подписей."""
+def slider(slides, mode='scroll'):
+    """Лента картинок без подписей. scroll: сдвигается вбок при прокрутке страницы; click: листается справа налево нажатием на картинку."""
     if not slides: return ''
     items = ''
+    click = mode == 'click'
     for x in slides:
-        b = f'/assets/img/uslugi/{x["src"]}'; ms = min(1400, x['w'])
-        items += (f'<figure class="sl"><img src="{b}_m.webp" srcset="{b}_s.webp 800w, {b}_m.webp {ms}w" sizes="(max-width:900px) 70vw, 45vw" '
-                  f'width="{x["w"]}" height="{x["h"]}" alt="{esc(x["alt"])}" loading="lazy" decoding="async"></figure>')
-    return f'<section class="slider" aria-label="Примеры визуализаций"><div class="sl-track">{items}</div></section>'
+        b = f'/assets/img/uslugi/{x["src"]}'; r = x['w'] / x['h']
+        attrs = ' tabindex="0" role="button" aria-label="Следующая картинка"' if click else ''
+        items += (f'<figure class="sl"{attrs}><img src="{b}_m.webp" srcset="{b}_s.webp {webp_w(b + "_s.webp", 800)}w, {b}_m.webp {webp_w(b + "_m.webp", 1400)}w" '
+                  f'sizes="calc(clamp(300px, 62vh, 640px) * {r:.3f})" width="{x["w"]}" height="{x["h"]}" alt="{esc(x["alt"])}" loading="lazy" decoding="async"></figure>')
+    return f'<section class="slider{" click" if click else ""}" aria-label="Фотографии"><div class="sl-track">{items}</div></section>'
 
 # ---------- хаб ----------
 def hub_page():
