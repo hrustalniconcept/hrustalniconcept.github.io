@@ -273,7 +273,7 @@ def service_page(s):
     s.setdefault('first_step_text', 'Ответим в ближайший рабочий день и скажем, с чего имеет смысл начинать.')
     # 1. обложка
     photo = (f'<figure class="photo rv"><img src="{base}_m.webp" srcset="{srcset}" sizes="100vw" width="2400" height="1409" alt="{esc(img["alt"])}" fetchpriority="high" decoding="async">'
-             f'<figcaption class="cap">{esc(img.get("caption", ""))}</figcaption></figure>' if has_img else '<div class="photo empty rv" role="img" aria-label="Место для фотографии"></div>')
+             + (f'<figcaption class="cap">{esc(img["caption"])}</figcaption>' if img.get("caption") else '') + '</figure>' if has_img else '<div class="photo empty rv" role="img" aria-label="Место для фотографии"></div>')
     if s.get('no_photo'): photo = ''  # страница без фото на обложке
     elif not has_img: TODOS.append((_ctx['page'], 'Обложка', f'Фотография на обложку услуги «{s["title"]}»'))
     _ctx['block'] = 'Обложка'
