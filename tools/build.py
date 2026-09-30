@@ -394,7 +394,7 @@ def service_page(s):
     oth = f'<section class="sec wrap" id="uslugi"><div class="head"><h2 class="h2 rv">{data["ladder"]["others_title"]}</h2><p class="txt rv">{t(data["ladder"]["others_lead"])}</p></div><div class="rv">{others(cur=slug)}</div></section>'
 
     # короткая страница: услуга может перечислить блоки в поле blocks, остальные не выводятся
-    parts = {'hero': hero, 'intro': intro, 'who': who, 'out': out, 'price': price, 'case': case, 'more': more, 'form': form, 'others': oth}
+    parts = {'hero': hero, 'intro': intro, 'who': who, 'out': out, 'slider': slider(s.get('slides', [])), 'price': price, 'case': case, 'more': more, 'form': form, 'others': oth}
     main = ''.join(parts[b] for b in s.get('blocks', list(parts)))
     body = f'<body data-page="/uslugi/{slug}/" data-service="{slug}">{nav(slug)}<main>{main}</main>{footer()}</body></html>'
     pre = {"src": f'{base}_m.webp', "srcset": srcset} if has_img else None
