@@ -504,3 +504,6 @@ body[data-page="/uslugi/"] .ladder .p small{text-align:left}
 .sl{margin:0;height:clamp(300px,62vh,640px);flex:0 0 auto;overflow:hidden;background:var(--stone)}
 .sl img{height:100%;width:auto;display:block}
 @media(prefers-reduced-motion:reduce){.slider{overflow-x:auto}}
+.slider.click .sl{cursor:pointer}
+.slider.click .sl-track{transition:transform .7s cubic-bezier(.2,.6,.2,1)}
+.slider.click .sl:focus-visible{outline:2px solid var(--navy);outline-offset:3px}
