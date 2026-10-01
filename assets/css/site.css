@@ -507,3 +507,4 @@ body[data-page="/uslugi/"] .ladder .p small{text-align:left}
 .slider.click .sl{cursor:pointer}
 .slider.click .sl-track{transition:transform .7s cubic-bezier(.2,.6,.2,1)}
 .slider.click .sl:focus-visible{outline:2px solid var(--navy);outline-offset:3px}
+.hero.no-photo+.slider{padding-top:0}
